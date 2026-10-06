@@ -21,8 +21,7 @@ public:
     static DoubleDouble cosineKernel(const DoubleDouble &r);
 
 private:
-    // sin x (shift 0) or cos x (shift 1): for 2^-27 <= |x| < 2^13 one Cody and Waite reduction by
-    // pi/256 and the table kernel, in plain doubles and no call; the rest by slow() or by F.9.1.
+    // sin x (shift 0) or cos x (shift 1): below 2^13 by pi/256 and a table, in plain doubles.
     static double evaluate(double x, int shift);
     // The same by ArgumentReduction and the double-double kernels, for every finite x.
     static double slow(double x, int shift);

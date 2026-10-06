@@ -24,6 +24,9 @@ const double MathConstants::ln2Lo = 5.497923018708371e-14;
 const double MathConstants::ln2By64Hi = 0.010830424696223417;
 const double MathConstants::ln2By64Lo = 2.572804622327669e-14;
 const double MathConstants::sixtyFourByLn2 = 92.33248261689366;
+const double MathConstants::ln2By128Hi = 0.005415212347998022;
+const double MathConstants::ln2By128Lo = 1.2655086083325438e-13;
+const double MathConstants::oneTwentyEightByLn2 = 184.6649652337873;
 const double MathConstants::invLn10Hi = 0.4342944819032518;
 const double MathConstants::invLn10Lo = 1.098319650216765e-17;
 

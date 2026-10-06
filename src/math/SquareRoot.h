@@ -14,8 +14,7 @@ public:
     static double inverse(double w);
 
 private:
-    // sqrt of a finite x > 0 (subnormal allowed) by an integer root settled exactly: the slow path,
-    // for the rare root within 2^-13 ulp of a halfway point and for subnormal x.
+    // sqrt of x > 0 finite by an exact integer root: for a subnormal x, or a root near a half.
     static double exact(double x);
     // 1/sqrt(m) ~ base_[i] + slope_[i] * m within 2^-14, i = m's bin of [1, 4) (SqrtTable.cpp).
     static const double base_[64], slope_[64];

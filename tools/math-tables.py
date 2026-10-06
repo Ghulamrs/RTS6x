@@ -191,6 +191,10 @@ c1 = truncated(ln2 / 64, 36)
 const('ln2By64Hi', c1, 'ln 2 / 64 = hi + lo, hi of 36 bits: n * hi exact for |n| < 2^17')
 const('ln2By64Lo', float(ln2 / 64 - Fraction(c1)), '')
 const('sixtyFourByLn2', float(64 / ln2), '64 / ln 2, nearest double')
+c1 = truncated(ln2 / 128, 35)
+const('ln2By128Hi', c1, 'ln 2 / 128 = hi + lo, hi of 35 bits: n * hi exact for |n| < 2^18')
+const('ln2By128Lo', float(ln2 / 128 - Fraction(c1)), '')
+const('oneTwentyEightByLn2', float(128 / ln2), '128 / ln 2, nearest double')
 inv10 = 1 / ln10
 const('invLn10Hi', dd(inv10)[0], '1 / ln 10, double-double')
 const('invLn10Lo', dd(inv10)[1], '')
@@ -234,12 +238,12 @@ namespace rts6x {
 
 # ---- 2^(j/64), j = 0..63 ----------------------------------------------------------------------
 hi, lo = [], []
-for j in range(64):
-    v = fx(exp_fixed(LN2 * j // 64))
+for j in range(128):
+    v = fx(exp_fixed(LN2 * j // 128))
     h = truncated(v, 26)
     hi.append(h)
     lo.append(float(v - Fraction(h)))
-write('ExpTable.cpp', '''// Spec: ISO C 7.12.6.1 (exp): 2^(j/64) for j = 0..63 as top + rest, the top of 26 bits (so its
+write('ExpTable.cpp', '''// Spec: ISO C 7.12.6.1 (exp): 2^(j/128) for j = 0..127 as top + rest, the top of 26 bits (so its
 // product with a 26-bit number is exact), the rest the nearest double to what is left. %s
 
 #include "ExpKernel.h"
@@ -315,7 +319,13 @@ for j in range(17):
     h, l = dd(fx(atan_fixed(ONE * j // 16)))
     ahi.append(h)
     alo.append(l)
-write('AtanTable.cpp', '''// Spec: ISO C 7.12.4.3 (atan): atan(j/16) as double-doubles for j = 0..16. %s
+bhi, blo = [], []
+for j in range(33):
+    h, l = dd(fx(atan_fixed(ONE * j // 32)))
+    bhi.append(h)
+    blo.append(l)
+write('AtanTable.cpp', '''// Spec: ISO C 7.12.4.3, 7.12.4.4 (atan, atan2): atan(j/16) for j = 0..16 and atan(j/32) for
+// j = 0..32, as double-doubles. %s
 
 #include "ArcTangent.h"
 
@@ -323,8 +333,11 @@ namespace rts6x {
 
 %s
 %s
+%s
+%s
 }  // namespace rts6x
-''' % (GEN, table('ArcTangent', 'atanHi_', ahi), table('ArcTangent', 'atanLo_', alo)))
+''' % (GEN, table('ArcTangent', 'atanHi_', ahi), table('ArcTangent', 'atanLo_', alo),
+       table('ArcTangent', 'atan32Hi_', bhi), table('ArcTangent', 'atan32Lo_', blo)))
 
 # ---- 1/sqrt(m) on 64 bins of [1, 4): a line through two Chebyshev nodes of each ------------
 import math

@@ -38,6 +38,11 @@ public:
     static const double ln2By64Lo;
     // 64 / ln 2, nearest double
     static const double sixtyFourByLn2;
+    // ln 2 / 128 = hi + lo, hi of 35 bits: n * hi exact for |n| < 2^18
+    static const double ln2By128Hi;
+    static const double ln2By128Lo;
+    // 128 / ln 2, nearest double
+    static const double oneTwentyEightByLn2;
     // 1 / ln 10, double-double
     static const double invLn10Hi;
     static const double invLn10Lo;

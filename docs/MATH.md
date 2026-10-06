@@ -79,6 +79,23 @@ reduction). At N = 20,000,000 (2026-10-06):
 | cosh | 0.500018 | 125,712 |
 | tanh | 0.502981 | 111,058 |
 
+The same check on Linux (g++ 11.5, glibc's libm as the comparison, so a different set is judged)
+before and after the speed work of 2026-10-07 (branch `speed/math`), N = 20,000,000 each:
+
+| function | before | after |
+| --- | --- | --- |
+| exp | 0.500016 | 0.500005 |
+| pow | 0.500139 | 0.500003 |
+| atan2 | 0.500223 | 0.500015 |
+| cosh | 0.500015 | 0.499998 |
+| tanh | 0.501176 | 0.500216 |
+| sin, cos, tan, log, log10, asin, acos, atan, sinh | as before: 0.500058, 0.500049, 0.500040, 0.500000, 0.499999, 0.500490, 0.500246, 0.500705, 0.500717 | the same |
+| sqrt and the exact functions | identical to libm | identical to libm |
+
+The sin and cos maxima are in the double-double path (huge arguments), which is unchanged; the
+6600 results of `math-values.cpp` are bit for bit the host's on the C6000 at -O0 and -O2, with
+both `rts6x.lib` and `rts6xd.lib`.
+
 The inputs cover every exponent, subnormals, x near 1 for the logarithms, huge
 trigonometric arguments and near multiples of pi/2, and exp's and pow's range edges.
 macOS's own tan differs from ours on 34% of these inputs, by up to 3 ulps, while ours
@@ -103,13 +120,31 @@ arithmetic flushed, and `atan2`'s tiny quotient, which the C674x divides in soft
 
 ## Speed on the C674x (vm6747sim, cycles a call, cpp11 -O2)
 
-floor 113, modf 182, ldexp 226, frexp 472, sqrt 1258, exp 1392, cos 1414, sin 1435, log 1654,
-log10 2072, pow 3595, sinh 3614, atan 3688, tanh 4193, tan 4742, atan2 7093, asin 7422, acos
-7621, sin of 1e30 (Payne-Hanek) 14598, fmod(3e8, 0.3) 20898.
+`tests/speed/math.cpp`'s functions one at a time, 300 calls each, the loop's own cost taken out;
+TI is `rts6740_elf_eh.lib` linked with the same program:
 
-Correct first (D8); what would make it faster, measured: cpp11 inlines none of
-`DoubleDouble`'s small members, so a kernel is mostly calls - each sum and product a call
-returning through memory. Writing the kernels with plain `double` locals would remove that,
-at the cost of the clarity the class gives. `fmod` with a large exponent gap is bound by the
-64-bit remainder helper, and `FloatPacker::pack` (used where `ldexp` leaves the normal range)
-by its bit-length loop.
+| function | before (2026-10-06) | after (2026-10-07) | TI |
+| --- | --- | --- | --- |
+| sin | 1913 | 713 | 274 |
+| cos | 1909 | 706 | 254 |
+| exp | 1403 | 507 | 514 |
+| log | 1639 | 618 | 693 |
+| sqrt | 1246 | 480 | 258 |
+| pow | 3590 | 1291 | 1045 |
+| atan2 | 7224 | 1173 | 997 |
+| `tests/speed/math.cpp` | 5,707,421 | 1,654,027 | 1,211,416 |
+
+The rest, from the earlier measurement and on paths not rewritten: floor 113, modf 182, ldexp 226,
+frexp 472, log10 2072, sinh 3614, atan 3688, tanh 4193, tan 4742, asin 7422, acos 7621, sin of
+1e30 (Payne-Hanek) 14598, fmod(3e8, 0.3) 20898.
+
+What cpp11 -O2 does with this code, measured, and why the kernels are written as they are: it
+inlines none of `DoubleDouble`'s members (each sum and product a call returning through memory),
+so the fast paths use plain `double`s; it keeps four doubles in saved registers and spills the
+rest, while an expression's temporaries stay in registers, so the kernels are long expressions over
+few named values; an inline call inside an expression costs a push and a pop of what was evaluated
+before it, so `MathConstants` are data members; a 64-bit shift is a generic sequence with branches,
+so the bits are read as 32-bit words through a union; and it does not fold constant expressions.
+What is left of the gap to TI is the schedule: every product waits out its nine delay slots.
+`fmod` with a large exponent gap is bound by the 64-bit remainder helper, and `FloatPacker::pack`
+(used where `ldexp` leaves the normal range) by its bit-length loop.
