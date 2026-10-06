@@ -27,12 +27,28 @@
 set "ASM6X=$(OutDir)asm6x.exe"
 call "$(ProjectDir)build.cmd" || exit /b 1
 if not exist "$(OutDir)lib\rts6x-tms6747" mkdir "$(OutDir)lib\rts6x-tms6747"
-for %%l in (rts6x rts6xd printf6x printf6xd) do copy /y "$(ProjectDir)build\%%l.lib" "$(OutDir)lib\rts6x-tms6747\%%l.lib" || exit /b 1</NMakeBuildCommandLine>
+for %%l in (rts6x rts6xd printf6x printf6xd) do copy /y "$(ProjectDir)build\%%l.lib" "$(OutDir)lib\rts6x-tms6747\%%l.lib" || exit /b 1
+for %%v in (shmrt6x:shmrt-tms6747 shmrt6xd:shmrt-tms6747-debug) do for /f "tokens=1,2 delims=:" %%a in ("%%v") do (
+  if exist "$(IntDir)%%a" rmdir /s /q "$(IntDir)%%a"
+  mkdir "$(IntDir)%%a"
+  "$(OutDir)asm6x.exe" "$(OutDir)lib\%%b\*.s" -o "$(IntDir)%%a" || exit /b 1
+  dir /b /s "$(IntDir)%%a\*.obj" > "$(IntDir)%%a.list"
+  if exist "$(OutDir)lib\rts6x-tms6747\%%a.lib" del "$(OutDir)lib\rts6x-tms6747\%%a.lib"
+  "$(ProjectDir)build\ar6x.exe" -r "$(OutDir)lib\rts6x-tms6747\%%a.lib" @"$(IntDir)%%a.list" || exit /b 1
+)</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set "CPP11=$(OutDir)cpp11.exe"
 set "ASM6X=$(OutDir)asm6x.exe"
 call "$(ProjectDir)build.cmd" || exit /b 1
 if not exist "$(OutDir)lib\rts6x-tms6747" mkdir "$(OutDir)lib\rts6x-tms6747"
-for %%l in (rts6x rts6xd printf6x printf6xd) do copy /y "$(ProjectDir)build\%%l.lib" "$(OutDir)lib\rts6x-tms6747\%%l.lib" || exit /b 1</NMakeReBuildCommandLine>
+for %%l in (rts6x rts6xd printf6x printf6xd) do copy /y "$(ProjectDir)build\%%l.lib" "$(OutDir)lib\rts6x-tms6747\%%l.lib" || exit /b 1
+for %%v in (shmrt6x:shmrt-tms6747 shmrt6xd:shmrt-tms6747-debug) do for /f "tokens=1,2 delims=:" %%a in ("%%v") do (
+  if exist "$(IntDir)%%a" rmdir /s /q "$(IntDir)%%a"
+  mkdir "$(IntDir)%%a"
+  "$(OutDir)asm6x.exe" "$(OutDir)lib\%%b\*.s" -o "$(IntDir)%%a" || exit /b 1
+  dir /b /s "$(IntDir)%%a\*.obj" > "$(IntDir)%%a.list"
+  if exist "$(OutDir)lib\rts6x-tms6747\%%a.lib" del "$(OutDir)lib\rts6x-tms6747\%%a.lib"
+  "$(ProjectDir)build\ar6x.exe" -r "$(OutDir)lib\rts6x-tms6747\%%a.lib" @"$(IntDir)%%a.list" || exit /b 1
+)</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>if exist "$(ProjectDir)build" rmdir /s /q "$(ProjectDir)build"</NMakeCleanCommandLine>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
