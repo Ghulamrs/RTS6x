@@ -1,6 +1,6 @@
 @echo off
-rem RTS6x on Windows: the Makefile's steps - ar6x built with cl, every C++ source through cpp11 and
-rem asm6x, every .s through asm6x, the provenance check, then ar6x packs build\rts6x.lib.
+rem RTS6x on Windows: the Makefile's steps - ar6x built with cl, each folder's C++ sources through cpp11
+rem and its .s through asm6x, the provenance check, then ar6x packs build\rts6x.lib.
 rem The tools: CPP11, ASM6X named, else beside this checkout, else an installed RIDE's bin.
 rem   build.cmd           the library        build.cmd check     the library, then tests\run.sh
 setlocal enabledelayedexpansion
@@ -27,22 +27,27 @@ if not "%VSCMD_ARG_TGT_ARCH%"=="x64" (
 )
 cl /nologo /std:c++14 /O2 /W4 /WX /EHsc /D_CRT_SECURE_NO_WARNINGS /Fo"%OBJDIR%\\" /Febuild\ar6x.exe tools\ar6x\ar6x.cpp >nul || (echo build.cmd: ar6x did not build & exit /b 1)
 
-if exist build\rts6x.objs del build\rts6x.objs
-for /r src %%f in (*.cpp) do (
-    set "REL=%%~dpf"
-    set "REL=!REL:%CD%\src\=!"
-    if not exist "%OBJDIR%\!REL!" mkdir "%OBJDIR%\!REL!"
-    "%CPP11%" -arch tms6747 -nologo -O2 -Isrc\internal -S "%%f" -o "%OBJDIR%\!REL!%%~nf.s" >nul || (echo build.cmd: cpp11 refused %%f & exit /b 1)
-    "%ASM6X%" "%OBJDIR%\!REL!%%~nf.s" -o "%OBJDIR%\!REL!%%~nf.obj" || exit /b 1
-    echo %OBJDIR%\!REL!%%~nf.obj>>build\rts6x.objs
+rem One cpp11 and one asm6x per folder of src\, each taking the folder's files as a pattern - both
+rem expand * themselves, cmd not doing it. cpp11 -c writes its objects where it runs, asm6x where -o says.
+for %%t in ("%CPP11%") do set "CPP11=%%~ft"
+for %%t in ("%ASM6X%") do set "ASM6X=%%~ft"
+for %%t in ("%OBJDIR%") do set "OBJDIR=%%~ft"
+set "CPP11_AS=%ASM6X%"
+for /d %%d in (src\*) do (
+    if not exist "%OBJDIR%\%%~nxd" mkdir "%OBJDIR%\%%~nxd"
+    if exist "%%d\*.cpp" (
+        pushd "%OBJDIR%\%%~nxd"
+        "%CPP11%" -arch tms6747 -nologo -O2 "-I%CD%\src\internal" -c "%CD%\%%d\*.cpp" >nul || (popd & echo build.cmd: cpp11 refused something in %%d & exit /b 1)
+        popd
+    )
+    if exist "%%d\*.s" "%ASM6X%" "%%d\*.s" -o "%OBJDIR%\%%~nxd" || exit /b 1
 )
-rem eh-none\ is the stand-in for the unwinder, in printf6x.lib alone; rts6x.lib has the real one, eh\.
-for /r src %%f in (*.s) do (
+rem The library's members, one a line for ar6x's @list: eh-none\ is the unwinder's stand-in, printf6x.lib's alone.
+if exist build\rts6x.objs del build\rts6x.objs
+for /r src %%f in (*.cpp *.s) do (
     set "REL=%%~dpf"
     set "REL=!REL:%CD%\src\=!"
-    if not exist "%OBJDIR%\!REL!" mkdir "%OBJDIR%\!REL!"
-    "%ASM6X%" "%%f" -o "%OBJDIR%\!REL!%%~nf.obj" || exit /b 1
-    if /i not "!REL!"=="eh-none\" echo %OBJDIR%\!REL!%%~nf.obj>>build\rts6x.objs
+    if /i not "!REL!"=="eh-none\" if /i not "!REL!"=="internal\" echo %OBJDIR%\!REL!%%~nf.obj>>build\rts6x.objs
 )
 
 rem The provenance check and the tests are shell scripts; Git for Windows carries the shell.
