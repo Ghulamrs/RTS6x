@@ -3,6 +3,7 @@
 // the count so far. 7.24.2.1/8 gives wprintf the same arguments. "C" locale: a byte per character.
 
 #include "Formatter.h"
+#include <string.h>
 
 namespace rts6x {
 
@@ -38,7 +39,8 @@ void Formatter::string(const FormatSpec &spec)
     const char *s = va_arg(*args_, const char *);
     if (s == 0) s = "(null)";
     size_t n = 0;
-    while (n < limit && s[n] != 0) n++;
+    if (limit == (size_t)-1) n = strlen(s);
+    else while (n < limit && s[n] != 0) n++;
     size_t padding = open(spec, "", 0, n, false);
     out_.put(s, n);
     close(spec, padding);

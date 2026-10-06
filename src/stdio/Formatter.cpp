@@ -1,6 +1,6 @@
-// Spec: ISO C 7.19.6.1/3-6: ordinary characters copied, `%%` a percent sign, each conversion
-// specification replaced by its argument converted, in a field padded to the width - on the left
-// with spaces, or zeros where 0 is given and allowed, on the right where - is given.
+// Spec: ISO C 7.19.6.1/3-6: ordinary characters copied (a narrow format's a run at a time), `%%` a
+// percent sign, each conversion specification replaced by its argument converted, in a field padded
+// to the width - left with spaces, or zeros where 0 is given and allowed, right where - is given.
 
 #include "Formatter.h"
 
@@ -19,18 +19,39 @@ bool Formatter::narrow(unsigned wide, char &byte)
 
 int Formatter::run(FormatText text)
 {
-    while (!failed_ && !text.done()) {
-        unsigned c = text.at();
-        text.next();
-        char byte;
-        if (c != '%') {
-            if (narrow(c, byte)) out_.put(byte);
+    while (!failed_) {
+        if (const char *p = text.narrowText()) {
+            const char *q = p;
+            char c;
+            while ((c = *q) != 0 && c != '%') q++;
+            if (q != p) out_.put(p, (size_t)(q - p));
+            if (c == 0) break;
+            if (q[1] == '%') {
+                text.skip((unsigned)(q - p) + 2);
+                out_.put('%');
+                continue;
+            }
+            const char *after = q + 1;
+            FormatSpec spec;
+            bool ok = spec.parse(after, args_);
+            text.skip((unsigned)(after - p));
+            if (!ok) { failed_ = true; break; }
+            convert(spec);
             continue;
-        }
-        if (text.at() == '%') {
+        } else {
+            if (text.done()) break;
+            unsigned c = text.at();
             text.next();
-            out_.put('%');
-            continue;
+            char byte;
+            if (c != '%') {
+                if (narrow(c, byte)) out_.put(byte);
+                continue;
+            }
+            if (text.at() == '%') {
+                text.next();
+                out_.put('%');
+                continue;
+            }
         }
         FormatSpec spec;
         if (!spec.parse(text, args_)) { failed_ = true; break; }

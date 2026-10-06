@@ -34,7 +34,7 @@ private:
     // FormatInteger.cpp: d i o u x X, and p
     void integer(const FormatSpec &spec);
     void pointer(const FormatSpec &spec);
-    void unsignedField(const FormatSpec &spec, unsigned long long magnitude, bool negative, unsigned base);
+    void unsignedField(const FormatSpec &spec, unsigned hi, unsigned lo, bool negative, unsigned base);
 
     // FormatCharacter.cpp: c s n
     void character(const FormatSpec &spec);

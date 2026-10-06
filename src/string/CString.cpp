@@ -3,23 +3,15 @@
 // strstr (an empty text found at once), strpbrk strspn strcspn, and strtok.
 
 #include "CString.h"
+#include "Memory.h"
 
 namespace rts6x {
 
 char *CString::next_;
 
-size_t CString::length(const char *s)
-{
-    const char *p = s;
-    while (*p) p++;
-    return (size_t)(p - s);
-}
-
 char *CString::copy(char *to, const char *from)
 {
-    char *d = to;
-    while ((*d++ = *from++) != 0) {}
-    return to;
+    return (char *)Memory::copy(to, from, length(from) + 1);
 }
 
 char *CString::copy(char *to, const char *from, size_t n)
@@ -36,12 +28,6 @@ char *CString::append(char *to, const char *from)
     return to;
 }
 
-int CString::compare(const char *a, const char *b)
-{
-    while (*a && *a == *b) { a++; b++; }
-    return (unsigned char)*a - (unsigned char)*b;
-}
-
 int CString::compare(const char *a, const char *b, size_t n)
 {
     for (; n; n--, a++, b++) {
@@ -51,21 +37,11 @@ int CString::compare(const char *a, const char *b, size_t n)
     return 0;
 }
 
-char *CString::find(const char *s, int c)
-{
-    for (char ch = (char)c;; s++) {
-        if (*s == ch) return (char *)s;
-        if (!*s) return 0;
-    }
-}
-
 char *CString::findLast(const char *s, int c)
 {
     const char *last = 0;
-    for (char ch = (char)c;; s++) {
-        if (*s == ch) last = s;
-        if (!*s) return (char *)last;
-    }
+    for (const char *p = find(s, c); p; p = *p ? find(p + 1, c) : 0) last = p;
+    return (char *)last;
 }
 
 char *CString::find(const char *s, const char *text)

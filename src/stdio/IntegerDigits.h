@@ -14,7 +14,8 @@ public:
     const char *text() const { return text_ + sizeof text_ - length_; }
 
 private:
-    // 2^64 has 22 octal digits, the most of the three bases.
+    // 2^64 has 22 octal digits, the most of the three bases. pairs_: "00" to "99".
+    static const char pairs_[201];
     char text_[24];
     unsigned length_;
 };

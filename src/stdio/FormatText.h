@@ -15,6 +15,10 @@ public:
     void next() { if (narrow_) narrow_++; else wide_++; }
     bool done() const { return at() == 0; }
     bool wide() const { return wide_ != 0; }
+    // The narrow text from the reading point, or null for a wide one; the character k ahead.
+    const char *narrowText() const { return narrow_; }
+    unsigned at(unsigned k) const { return narrow_ ? (unsigned char)narrow_[k] : (unsigned)wide_[k]; }
+    void skip(unsigned n) { if (narrow_) narrow_ += n; else wide_ += n; }
 
 private:
     const char *narrow_;

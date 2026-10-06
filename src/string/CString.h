@@ -5,17 +5,21 @@
 
 #include <stddef.h>
 
+extern "C" size_t strlen(const char *s);       // strlen.s
+extern "C" char *strchr(const char *s, int c);  // strchr.s
+extern "C" int strcmp(const char *a, const char *b);   // strcmp.s
+
 namespace rts6x {
 
 class CString {
 public:
-    static size_t length(const char *s);
+    static size_t length(const char *s) { return strlen(s); }
     static char *copy(char *to, const char *from);
     static char *copy(char *to, const char *from, size_t n);
     static char *append(char *to, const char *from);
-    static int compare(const char *a, const char *b);
+    static int compare(const char *a, const char *b) { return strcmp(a, b); }
     static int compare(const char *a, const char *b, size_t n);
-    static char *find(const char *s, int c);
+    static char *find(const char *s, int c) { return strchr(s, c); }
     static char *findLast(const char *s, int c);
     static char *find(const char *s, const char *text);
     static char *findAny(const char *s, const char *set);
