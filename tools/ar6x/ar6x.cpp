@@ -124,8 +124,7 @@ int create(const std::string &lib, const std::vector<std::string> &objs)
         ms.push_back(m);
     }
 
-    // Members in byte order of their names, whatever order they came in: every host's shell lists
-    // files its own way, and the same objects must make the same library.
+    // By name, whatever order the host's shell listed them in: the same objects, the same library.
     std::sort(ms.begin(), ms.end(), [](const Member &x, const Member &y) { return x.name < y.name; });
 
     // The long names, `name/\n` each, for a name past fifteen characters.

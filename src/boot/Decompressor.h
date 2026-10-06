@@ -12,8 +12,7 @@ public:
     static void none(const unsigned char *source, unsigned char *destination);
     // size bytes of zero.
     static void zero(const unsigned char *source, unsigned char *destination);
-    // An escape byte, then literals; the escape and a count: 1-3 that many escapes, 4-255 a run of
-    // the next byte, 0 a 16-bit big-endian length (below 256: the top of a 24-bit one), 0 ending.
+    // The rle24 stream LNK6x's rle24_encode writes: an escape, literals, escape-led counts.
     static void rle24(const unsigned char *source, unsigned char *destination);
 
 private:

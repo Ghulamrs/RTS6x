@@ -17,6 +17,8 @@ void Decompressor::zero(const unsigned char *source, unsigned char *destination)
     fill(destination, 0, size(source));
 }
 
+// After the escape byte, literals; the escape and a count: 1-3 that many escapes, 4-255 a run of
+// the next byte, 0 a 16-bit big-endian length (below 256, the top of a 24-bit one), a 0 length the end.
 void Decompressor::rle24(const unsigned char *source, unsigned char *destination)
 {
     const unsigned char escape = *source++;
