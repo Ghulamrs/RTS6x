@@ -6,9 +6,14 @@ namespace rts6x {
 
 double Logarithm::natural(double x)
 {
+    // Positive, normal and finite on the high word alone: the kernel straight away.
+    union { double d; unsigned w[2]; } v;
+    v.d = x;
+    double lo;
+    if (v.w[1] - 0x00100000u < 0x7FE00000u) return kernel(x, lo) + lo;
     double result;
     if (special(x, result)) return result;
-    return kernel(x).value();
+    return kernel(x, lo) + lo;
 }
 
 }  // namespace rts6x

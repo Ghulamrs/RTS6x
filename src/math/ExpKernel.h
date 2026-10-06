@@ -10,13 +10,17 @@ namespace rts6x {
 
 class ExpKernel {
 public:
-    // e^(z.hi + z.lo) = m 2^k, k returned, m in [0.7, 1.5) to about 2^-66; |z.hi| <= 746.
+    // e^(zh + zl) = (mh + ml) 2^k, k returned, mh in [0.7, 1.5), |ml| < 2^-50, to about 2^-67
+    // relative; |zh| <= 746, |zl| <= 2^-40. Plain doubles throughout: no call, no double-double.
+    static int evaluate(double zh, double zl, double &mh, double &ml);
+    // The same with m normalised as a double-double, |m.lo| <= ulp(m.hi)/2.
     static int evaluate(const DoubleDouble &z, DoubleDouble &m);
     // m * 2^k as a double-double, both parts normal: for |k| below about 950.
     static DoubleDouble scaled(const DoubleDouble &m, int k);
 
 private:
-    static const double powerHi_[64], powerLo_[64];
+    // 2^(j/64) = powerTop_[j] + powerRest_[j], the top of 26 bits.
+    static const double powerTop_[64], powerRest_[64];
 };
 
 }  // namespace rts6x

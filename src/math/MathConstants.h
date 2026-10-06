@@ -6,32 +6,41 @@
 
 namespace rts6x {
 
+// Data members rather than inline functions: cpp11 loads one where it is named in an expression,
+// where an inline call there costs a push and a pop of everything evaluated before it.
 class MathConstants {
 public:
     // pi/2, double-double
-    static double halfPiHi() { return 1.5707963267948966; }
-    static double halfPiLo() { return 6.123233995736766e-17; }
+    static const double halfPiHi;
+    static const double halfPiLo;
     // pi, double-double
-    static double piHi() { return 3.141592653589793; }
-    static double piLo() { return 1.2246467991473532e-16; }
+    static const double piHi;
+    static const double piLo;
     // 2/pi, nearest double: the quadrant guess
-    static double twoOverPi() { return 0.6366197723675814; }
+    static const double twoOverPi;
     // pi/2 = part1 + part2 + part3 + part4
-    static double halfPiPart1() { return 1.5707963267341256; }
-    static double halfPiPart2() { return 6.077100506303966e-11; }
-    static double halfPiPart3() { return 2.0222662487111665e-21; }
-    static double halfPiPart4() { return 8.4784276603689e-32; }
+    static const double halfPiPart1;
+    static const double halfPiPart2;
+    static const double halfPiPart3;
+    static const double halfPiPart4;
+    // pi/256 = the four parts of pi/2 over 128, exactly
+    static const double piBy256Part1;
+    static const double piBy256Part2;
+    static const double piBy256Part3;
+    static const double piBy256Part4;
+    // 256/pi, nearest double: the sine table index guess
+    static const double twoFiftySixByPi;
     // ln 2 = ln2Hi + ln2Lo, ln2Hi of 42 bits: e * ln2Hi is exact
-    static double ln2Hi() { return 0.6931471805598903; }
-    static double ln2Lo() { return 5.497923018708371e-14; }
+    static const double ln2Hi;
+    static const double ln2Lo;
     // ln 2 / 64 = hi + lo, hi of 36 bits: n * hi exact for |n| < 2^17
-    static double ln2By64Hi() { return 0.010830424696223417; }
-    static double ln2By64Lo() { return 2.572804622327669e-14; }
+    static const double ln2By64Hi;
+    static const double ln2By64Lo;
     // 64 / ln 2, nearest double
-    static double sixtyFourByLn2() { return 92.33248261689366; }
+    static const double sixtyFourByLn2;
     // 1 / ln 10, double-double
-    static double invLn10Hi() { return 0.4342944819032518; }
-    static double invLn10Lo() { return 1.098319650216765e-17; }
+    static const double invLn10Hi;
+    static const double invLn10Lo;
 };
 
 }  // namespace rts6x

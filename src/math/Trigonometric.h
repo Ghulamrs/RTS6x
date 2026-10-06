@@ -20,10 +20,17 @@ public:
     static DoubleDouble cosineKernel(const DoubleDouble &r);
 
 private:
+    // sin x (shift 0) or cos x (shift 1) for 2^-27 <= |x| < 2^13: one Cody and Waite reduction by
+    // pi/256 and the table kernel, in plain doubles and no call; a tiny remainder goes to slow().
+    static double fast(double x, int shift);
+    // The same by ArgumentReduction and the double-double kernels, for every finite x.
+    static double slow(double x, int shift);
     // r split as a + t: returns j with a = j/64, t a double-double, |t| <= 1/128; r taken as |r|.
     static int split(const DoubleDouble &r, DoubleDouble &t);
 
     static const double sinHi_[53], sinLo_[53], cosHi_[53], cosLo_[53];
+    // Row j: sin and cos of j pi/256, each a top of 26 bits and a rest.
+    static const double rows_[512];
 };
 
 }  // namespace rts6x

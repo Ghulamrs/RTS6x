@@ -26,8 +26,8 @@ DoubleDouble ArcTangent::kernel(const DoubleDouble &y)
     return DoubleDouble::quickSum(s.hi, s.lo + atanLo_[j] + (t.lo - t2 * t.lo + tail));
 }
 
-DoubleDouble ArcTangent::halfPi() { return DoubleDouble(MathConstants::halfPiHi(), MathConstants::halfPiLo()); }
+DoubleDouble ArcTangent::halfPi() { return DoubleDouble(MathConstants::halfPiHi, MathConstants::halfPiLo); }
 
-DoubleDouble ArcTangent::pi() { return DoubleDouble(MathConstants::piHi(), MathConstants::piLo()); }
+DoubleDouble ArcTangent::pi() { return DoubleDouble(MathConstants::piHi, MathConstants::piLo); }
 
 }  // namespace rts6x

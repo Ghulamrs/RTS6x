@@ -19,6 +19,9 @@ public:
     static DoubleDouble kernel(const DoubleDouble &y);
 
 private:
+    // atan2 for |y|, |x| normal with exponents at most 60 apart: atan c + atan((n - c d)/(d + c n)),
+    // n, d the smaller and larger magnitude, c = j/16 near n/d; one quotient, in plain doubles.
+    static double angle(double y, double x);
     // sqrt(1 - a^2) as a double-double, 0 <= a < 1.
     static DoubleDouble cosineOf(double a);
     static DoubleDouble halfPi();

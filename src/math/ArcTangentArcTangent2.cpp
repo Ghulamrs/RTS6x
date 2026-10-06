@@ -11,6 +11,14 @@ namespace rts6x {
 
 double ArcTangent::arcTangent2(double y, double x)
 {
+    // Both normal and finite, their exponents at most 60 apart: on the high words alone.
+    union { double d; unsigned w[2]; } bits;
+    bits.d = y;
+    unsigned ay = bits.w[1] & 0x7FFFFFFFu;
+    bits.d = x;
+    unsigned ax = bits.w[1] & 0x7FFFFFFFu;
+    if (ay - 0x00100000u < 0x7FE00000u && ax - 0x00100000u < 0x7FE00000u
+        && (ay >> 20) - (ax >> 20) + 60u <= 120u) return angle(y, x);
     unsigned long long uy = MathBits::of(y), ux = MathBits::of(x);
     if (MathBits::isNaN(uy)) return y;
     if (MathBits::isNaN(ux)) return x;
