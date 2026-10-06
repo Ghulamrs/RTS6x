@@ -1,0 +1,3 @@
+alignment and contents: 0 bad; realloc kept [keep me]; calloc zero: 1
+realloc(0, 5) allocates; malloc(0) unique
+exhausted after some blocks: 1; one large block after freeing: 1

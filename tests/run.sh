@@ -58,28 +58,34 @@ for level in -O0 -O2; do
     fi
 done
 
-# M1: whole programs on rts6x.lib alone - its own _c_int00, .cinit, constructors, exit - each built
-# by its compiler (c90 for .c, cpp11 for .cpp) at -O0 and -O2, linked under both of lnk6x's models,
-# run on vm6747sim; the output and the status (tests/m1/<name>.status) held to the host's.
-for src in tests/m1/*.c tests/m1/*.cpp; do
+# Whole programs on rts6x.lib alone - its own _c_int00, .cinit, constructors, exit - each built by
+# its compiler (c90 for .c, cpp11 for .cpp) at -O0 and -O2, linked under both of lnk6x's models, run
+# on vm6747sim; output and status (<name>.status) held to the host's. <name>.with: more to link in.
+for src in tests/m1/*.c tests/m1/*.cpp tests/m2/*.c tests/m2/*.cpp tests/helpers/*.c tests/helpers/*.cpp; do
+    [ -f "$src" ] || continue
+    dir=$(dirname "$src")
     name=$(basename "$src"); name=${name%.*}
-    want=$(cat "tests/m1/$name.status")
+    want=$(cat "$dir/$name.status")
     for level in -O0 -O2; do
-        o="$OUT/m1-$name$level"
+        o="$OUT/$(basename "$dir")-$name$level"
         case "$src" in
             *.c) "$C90" -arch tms6747 $level -S "$src" -o "$o.s" > "$o.log" 2>&1 ;;
             *) "$CPP11" -arch tms6747 -nologo $level -S "$src" -o "$o.s" > "$o.log" 2>&1 ;;
-        esac || { bad "m1 $name $level did not compile" "$(grep -i error "$o.log" | head -3)"; continue; }
-        "$ASM6X" "$o.s" -o "$o.obj" >> "$o.log" 2>&1 || { bad "m1 $name $level did not assemble" "$(tail -3 "$o.log")"; continue; }
+        esac || { bad "$(basename "$dir") $name $level did not compile" "$(grep -i error "$o.log" | head -3)"; continue; }
+        "$ASM6X" "$o.s" -o "$o.obj" >> "$o.log" 2>&1 || { bad "$(basename "$dir") $name $level did not assemble" "$(tail -3 "$o.log")"; continue; }
+        extra=""
+        if [ -f "$dir/$name.with" ]; then
+            for w in $(cat "$dir/$name.with"); do "$ASM6X" "$w" -o "$o.$(basename "$w" .s).obj" >> "$o.log" 2>&1; extra="$extra $o.$(basename "$w" .s).obj"; done
+        fi
         for model in rom ram; do
-            if ! "$LNK6X" -mv6740 --abi=eabi --${model}_model tests/link/flat.cmd "$o.obj" -l "$LIB" -o "$o.$model.out" >> "$o.log" 2>&1; then
-                bad "m1 $name $level --${model}_model did not link" "$(tail -3 "$o.log")"; continue
+            if ! "$LNK6X" -mv6740 --abi=eabi --${model}_model tests/link/flat.cmd "$o.obj" $extra -l "$LIB" -o "$o.$model.out" >> "$o.log" 2>&1; then
+                bad "$(basename "$dir") $name $level --${model}_model did not link" "$(tail -3 "$o.log")"; continue
             fi
             "$VMSIM" --run "$o.$model.out" > "$o.$model.txt" 2>&1; st=$?
-            if [ "$st" = "$want" ] && diff -q "tests/m1/$name.expected" "$o.$model.txt" > /dev/null; then
-                ok "m1 $name $level --${model}_model: output and status $st"
+            if [ "$st" = "$want" ] && diff -q "$dir/$name.expected" "$o.$model.txt" > /dev/null; then
+                ok "$(basename "$dir") $name $level --${model}_model: output and status $st"
             else
-                bad "m1 $name $level --${model}_model: status $st, wanted $want" "$(diff "tests/m1/$name.expected" "$o.$model.txt" | head -6)"
+                bad "$(basename "$dir") $name $level --${model}_model: status $st, wanted $want" "$(diff "$dir/$name.expected" "$o.$model.txt" | head -6)"
             fi
         done
     done

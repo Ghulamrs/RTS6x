@@ -67,6 +67,13 @@ bool definedSymbols(const std::vector<u8> &d, std::vector<std::string> &out, std
     return true;
 }
 
+std::string folded(std::string s)
+{
+    for (size_t i = 0; i < s.size(); i++)
+        if (s[i] >= 'A' && s[i] <= 'Z') s[i] = char(s[i] - 'A' + 'a');
+    return s;
+}
+
 void put(std::vector<u8> &v, const char *s, size_t width)
 {
     size_t n = std::strlen(s);
@@ -106,8 +113,12 @@ int create(const std::string &lib, const std::vector<std::string> &objs)
         std::string why;
         if (!readFile(objs[i], m.bytes)) { std::fprintf(stderr, "ar6x: %s: cannot read\n", objs[i].c_str()); return 1; }
         if (!definedSymbols(m.bytes, m.defs, m.weak, why)) { std::fprintf(stderr, "ar6x: %s: %s\n", objs[i].c_str(), why.c_str()); return 1; }
+        // Names equal but for case collide on the Mac's and Windows' file systems, so they are refused too.
         for (size_t k = 0; k < ms.size(); k++)
-            if (ms[k].name == m.name) { std::fprintf(stderr, "ar6x: two members named %s\n", m.name.c_str()); return 1; }
+            if (folded(ms[k].name) == folded(m.name)) {
+                std::fprintf(stderr, "ar6x: two members named %s and %s\n", ms[k].name.c_str(), m.name.c_str());
+                return 1;
+            }
         // Two strong definitions of one name would make a link's choice depend on the order; weak
         // ones - an inline function in each object that uses it - are one definition, indexed once.
         for (size_t k = 0; k < m.defs.size(); k++) {

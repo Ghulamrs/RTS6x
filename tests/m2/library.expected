@@ -1,0 +1,15 @@
+[hello, world] 12 1 0 1
+[o, world] [orld] [world] [, world]
+4 3 1 1
+strncpy pads: 0 0 0
+token [alpha]
+token [beta]
+token [gamma]
+[ABxxxxxxxx] 1 0 [kup]
+62 52 33 10 94 26 95 32 6 26 22 65280
+-1234 31 511 35
+[xyz] 4294967295 255 42 -99
+overflow: 1 1 1 1 none: 0 1
+-7 -7 0 5 13 42 99 1000 apple banana fig kiwi pear | found 13 at 4, 5 6
+vsprintf 10 [<003.1|ff>]
+rand follows C's example: 5 of 5
