@@ -9,36 +9,40 @@ namespace rts6x {
 void Formatter::integer(const FormatSpec &spec)
 {
     char c = spec.conversion();
-    bool isSigned = c == 'd' || c == 'i';
-    unsigned long long magnitude = 0;
+    FormatSpec::Length length = spec.length();
+    bool wide = length == FormatSpec::LongLong || length == FormatSpec::IntMax ||
+                (length == FormatSpec::Long && sizeof(long) > sizeof(int));
+    unsigned hi = 0, lo;
     bool negative = false;
-    if (isSigned) {
-        long long v;
-        switch (spec.length()) {
-        case FormatSpec::Char: v = (signed char)va_arg(*args_, int); break;
-        case FormatSpec::Short: v = (short)va_arg(*args_, int); break;
-        case FormatSpec::Long: v = va_arg(*args_, long); break;
-        case FormatSpec::LongLong: case FormatSpec::IntMax: v = va_arg(*args_, long long); break;
-        default: v = va_arg(*args_, int); break;
+    if (c == 'd' || c == 'i') {
+        if (wide) {
+            long long v = va_arg(*args_, long long);
+            negative = v < 0;
+            unsigned long long m = negative ? 0ull - (unsigned long long)v : (unsigned long long)v;
+            hi = (unsigned)(m >> 32);
+            lo = (unsigned)m;
+        } else {
+            int v = va_arg(*args_, int);
+            if (length == FormatSpec::Char) v = (signed char)v;
+            else if (length == FormatSpec::Short) v = (short)v;
+            negative = v < 0;
+            lo = negative ? 0u - (unsigned)v : (unsigned)v;
         }
-        negative = v < 0;
-        magnitude = negative ? (unsigned long long)(-(v + 1)) + 1u : (unsigned long long)v;
+    } else if (wide) {
+        unsigned long long m = va_arg(*args_, unsigned long long);
+        hi = (unsigned)(m >> 32);
+        lo = (unsigned)m;
     } else {
-        switch (spec.length()) {
-        case FormatSpec::Char: magnitude = (unsigned char)va_arg(*args_, unsigned); break;
-        case FormatSpec::Short: magnitude = (unsigned short)va_arg(*args_, unsigned); break;
-        case FormatSpec::Long: magnitude = va_arg(*args_, unsigned long); break;
-        case FormatSpec::LongLong: case FormatSpec::IntMax: magnitude = va_arg(*args_, unsigned long long); break;
-        default: magnitude = va_arg(*args_, unsigned); break;
-        }
+        lo = va_arg(*args_, unsigned);
+        if (length == FormatSpec::Char) lo = (unsigned char)lo;
+        else if (length == FormatSpec::Short) lo = (unsigned short)lo;
     }
     unsigned base = c == 'o' ? 8 : (c == 'x' || c == 'X') ? 16 : 10;
-    unsignedField(spec, magnitude, negative, base);
+    unsignedField(spec, hi, lo, negative, base);
 }
 
-void Formatter::unsignedField(const FormatSpec &spec, unsigned long long magnitude, bool negative, unsigned base)
+void Formatter::unsignedField(const FormatSpec &spec, unsigned hi, unsigned lo, bool negative, unsigned base)
 {
-    unsigned hi = (unsigned)(magnitude >> 32), lo = (unsigned)magnitude;
     IntegerDigits digits(hi, lo, base, spec.upper());
     size_t n = digits.length();
     size_t zeros = 0;
@@ -52,10 +56,16 @@ void Formatter::unsignedField(const FormatSpec &spec, unsigned long long magnitu
     if (c == 'd' || c == 'i') p = signPrefix(spec, negative, prefix);
     else if (base == 16 && spec.alternate() && n != 0) { prefix[0] = '0'; prefix[1] = c; p = 2; }
 
-    size_t padding = open(spec, prefix, p, zeros + n, spec.precision() < 0);
+    // open() and close() inline: zero padding is more leading zeros, space padding goes left or right
+    size_t used = p + zeros + n, width = spec.width() > 0 ? (size_t)spec.width() : 0;
+    size_t padding = width > used ? width - used : 0;
+    bool left = spec.leftAlign();
+    if (!left && spec.zeroPad() && spec.precision() < 0) { zeros += padding; padding = 0; }
+    if (!left) out_.repeat(' ', padding);
+    out_.put(prefix, p);
     out_.repeat('0', zeros);
     out_.put(digits.text(), n);
-    close(spec, padding);
+    if (left) out_.repeat(' ', padding);
 }
 
 void Formatter::pointer(const FormatSpec &spec)

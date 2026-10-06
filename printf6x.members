@@ -20,3 +20,6 @@ src/stdio/ftable.cpp
 src/stdio/printf.cpp
 src/stdio/sprintf.cpp
 src/stdio/wprintf.cpp
+src/string/memcpy.s
+src/string/memset.s
+src/string/strlen.s
