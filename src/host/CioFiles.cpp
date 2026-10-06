@@ -3,6 +3,7 @@
 // answered) and lseek 0xF4 (fd, a 32-bit offset at parameter 2, the origin at 6; the position).
 
 #include "CioChannel.h"
+#include "DescriptorModes.h"
 
 namespace rts6x {
 
@@ -11,7 +12,9 @@ int CioChannel::open(const char *path, unsigned flags)
     unsigned char params[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
     put16(params + 2, flags);
     requestText(Open, params, path, 0);
-    return answer16();
+    int fd = answer16();
+    DescriptorModes::opened(fd);
+    return fd;
 }
 
 int CioChannel::close(int fd)
@@ -19,7 +22,9 @@ int CioChannel::close(int fd)
     unsigned char params[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
     put16(params, (unsigned)fd);
     request(Close, params, 0, 0);
-    return answer16();
+    int result = answer16();
+    if (result == 0) DescriptorModes::closed(fd);
+    return result;
 }
 
 int CioChannel::read(int fd, char *bytes, unsigned count)

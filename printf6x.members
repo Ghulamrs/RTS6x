@@ -1,6 +1,7 @@
 src/eh-none/pr3.s
 src/host/CioChannel.cpp
 src/host/CioFiles.cpp
+src/host/DescriptorTable.cpp
 src/host/cio.s
 src/stdio/DecimalDigits.cpp
 src/stdio/FormatCharacter.cpp

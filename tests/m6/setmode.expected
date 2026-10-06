@@ -1,0 +1,9 @@
+stdout binary: 16384 errno 0
+stdout text: 32768 errno 0
+stdout text again: 16384 errno 0
+stderr binary: 16384 errno 0
+mode 0x1234: -1 errno EINVAL
+fd 7, not open: -1 errno EBADF
+fd -1: -1 errno EBADF
+an opened file: 16384 errno 0
+the same, closed: -1 errno EBADF
