@@ -1,0 +1,14 @@
+sin    68 of 68 within an ulp
+cos    67 of 67 within an ulp
+tan    64 of 64 within an ulp
+exp    69 of 69 within an ulp
+log    67 of 67 within an ulp
+log10  66 of 66 within an ulp
+pow    69 of 69 within an ulp
+atan   66 of 66 within an ulp
+atan2  65 of 65 within an ulp
+asin   64 of 64 within an ulp
+acos   65 of 65 within an ulp
+sinh   67 of 67 within an ulp
+cosh   66 of 66 within an ulp
+tanh   65 of 65 within an ulp
