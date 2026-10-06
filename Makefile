@@ -22,9 +22,10 @@ OBJS    = $(patsubst src/%.cpp,$(OBJDIR)/%.obj,$(CPPSRC)) $(patsubst src/%.s,$(O
 HEADERS = $(shell find src -name '*.h')
 
 # printf6x.lib: printf, fprintf, sprintf and wprintf, with only what they need under them -
-# the formatter's classes, the FILE table and the host channel.
-PRINTFSRC = src/host/CioChannel.cpp $(addprefix src/stdio/,DecimalDigits.cpp FormatCharacter.cpp FormatFloat.cpp FormatInteger.cpp FormatSpec.cpp Formatter.cpp IntegerDigits.cpp OutputSink.cpp fprintf.cpp ftable.cpp printf.cpp sprintf.cpp wprintf.cpp)
-PRINTFOBJ = $(patsubst src/%.cpp,$(OBJDIR)/%.obj,$(PRINTFSRC)) $(OBJDIR)/host/cio.obj $(OBJDIR)/eh-none/pr3.obj
+# printf6x.members lists the sources, for this file and build.cmd alike.
+PRINTFSRC = $(shell cat printf6x.members)
+PRINTFOBJ = $(patsubst src/%,$(OBJDIR)/%,$(PRINTFSRC:.cpp=.obj))
+PRINTFOBJ := $(PRINTFOBJ:.s=.obj)
 PRINTFLIB = $(BINDIR)/printf6x.lib
 
 all: $(LIB) $(PRINTFLIB)
