@@ -9,6 +9,8 @@ if "%MAXRUNS%"=="" set MAXRUNS=10
 cd /d "%W%"
 if exist out rmdir /s /q out
 mkdir out
+rem The host takes a path from the root, /tmp/x, as one under the program's own folder: tmp\x here.
+mkdir tmp 2>nul
 if exist ws rmdir /s /q ws 2>nul
 mkdir ws 2>nul
 set WANT=0

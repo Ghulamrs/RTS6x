@@ -1,6 +1,6 @@
-// Spec: the C$$IO$$ host channel (vm6747sim src/C6xHost.cpp): open 0xF0 (flags at parameter 2, the
-// path as data, the descriptor answered), close 0xF1, read 0xF2 (fd, count; the count and the bytes
-// answered) and lseek 0xF4 (fd, a 32-bit offset at parameter 2, the origin at 6; the position).
+// Spec: the C$$IO$$ host channel, measured on CCS 5.5's C6747 simulator: open 0xF0 (the target's own
+// descriptor at parameter 0, the flags at 2, the path as data; a negative answer refuses), close 0xF1,
+// read 0xF2 (fd, count; the count and the bytes), lseek 0xF4 (fd, offset at 2, origin at 6; position).
 
 #include "CioChannel.h"
 #include "DescriptorModes.h"
@@ -9,11 +9,15 @@ namespace rts6x {
 
 int CioChannel::open(const char *path, unsigned flags)
 {
+    // The host files every later request under the descriptor named here, not under what it answers.
+    int fd = DescriptorModes::vacant();
+    if (fd < 0) return -1;
     unsigned char params[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    put16(params, (unsigned)fd);
     put16(params + 2, flags);
     requestText(Open, params, path, 0);
-    int fd = answer16();
-    DescriptorModes::opened(fd);
+    if (answer16() < 0) return -1;
+    DescriptorModes::opened(fd, flags & Binary ? DescriptorModes::Binary : DescriptorModes::Text);
     return fd;
 }
 
