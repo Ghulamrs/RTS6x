@@ -1,0 +1,15 @@
+#!/bin/sh
+# The rule of docs/PROVENANCE.md, checked: every source names the specification it implements in
+# its first lines, and none carries a mark of another library - a licence, a copyright line, or
+# the name of a file from another run-time. Exit 1 with each offence named.
+cd "$(dirname "$0")/.." || exit 2
+bad=0
+for f in $(find src tools/ar6x -name '*.cpp' -o -name '*.s' -o -name '*.h' | sort); do
+    head -5 "$f" | grep -q 'Spec:' || { echo "provenance: $f does not name its specification (a 'Spec:' line in its first five lines)"; bad=1; }
+done
+# Marks that would mean text came from somewhere else; spelled in pieces so this file passes itself.
+marks="Copy""right|All rights ""reserved|Free Software ""Foundation|General Public ""License|Apache ""License|SPDX-""License|Texas Instruments ""Incorporated|rts""src|trg""msg\.c|tdeh""_|lib""gcc|new""lib|lib""gloss|g""libc|libc""xxabi|libunw""ind"
+found=$(grep -rnIE "$marks" src tools/ar6x 2>/dev/null)
+[ -n "$found" ] && { echo "provenance: text marking another library:"; echo "$found" | sed 's/^/  /'; bad=1; }
+[ $bad = 0 ] && echo "provenance: every source names its specification, and none carries another library's marks"
+exit $bad

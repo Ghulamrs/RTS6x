@@ -1,0 +1,10 @@
+©2026 G. R. Akhtar - RTS6x 1.0, a TMS320C6747 run-time support library
+Release seal, version 1.0, sealed 06-10-2026
+Written by tools/seal; check it with `tools/seal check`.
+CRC32  size  file - 3 files, seal 78EB68E7
+------------------------------------------------------------------
+652BD312       222  src/boot/version.s
+1603B27F       909  src/internal/rts6x.h
+BAE9AFD3      9712  tools/ar6x/ar6x.cpp
+------------------------------------------------------------------
+Sealed on 06-10-2026

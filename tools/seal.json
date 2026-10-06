@@ -1,0 +1,5 @@
+{"name": "rts6x",
+ "version": "1.0",
+ "banner": "©2026 G. R. Akhtar - RTS6x 1.0, a TMS320C6747 run-time support library",
+ "dirs": ["src", "tools/ar6x"],
+ "files": []}
