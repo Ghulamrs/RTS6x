@@ -1,0 +1,6 @@
+a 3 b 4
+c 3
+missing 1
+rts6x-m6-a.txt: first
+rts6x-m6-b.txt: second
+rts6x-m6-c.txt: third

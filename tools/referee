@@ -4,6 +4,8 @@
 # output and exit status are compared with vm6747sim's, which the suites have already held to expected.
 #   tools/referee              both suites, rebuilt at -O2      tools/referee cpp11|c90    one of them
 #   KEEP=1 tools/referee       the suites' images as they are, not rebuilt; ONLY=word, the images named so
+#   PREPARE=dir tools/referee  stop with the images and vm6747sim's answers in dir (a box with no route
+#   to Windows builds and runs them); FROM=dir tools/referee  ship and judge what PREPARE left there
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CPP=$(cd "$ROOT/../C++Optimize" && pwd); C90=$(cd "$ROOT/../VM6747/Compiler-Ci" && pwd)
@@ -15,8 +17,8 @@ mkdir -p "$WORK/ref" "$WORK/vm"
 for f in runca.js par-one.cmd c6747ca-windows.ccxml; do cp "$CPP/tools/c6747/$f" "$WORK/ref/"; done
 cp "$ROOT/tools/referee.cmd" "$WORK/ref/"
 
-# The suites' images, rebuilt at -O2 against this checkout's library unless KEEP says otherwise.
-if [ "${KEEP:-0}" != 1 ]; then
+# The suites' images, rebuilt at -O2 against this checkout's library unless KEEP or FROM says otherwise.
+if [ -z "${FROM:-}" ] && [ "${KEEP:-0}" != 1 ]; then
     [ "$WHICH" = c90 ] || (cd "$CPP" && CXX1_FLAGS=-O2 TIRTS="$ROOT/build" RTSLIB=rts6x.lib sh tests/tms6747.sh | tail -2)
     if [ "$WHICH" != cpp11 ]; then
         printf '#!/bin/sh\nexec %s -O2 "$@"\n' "$C90/c90.exe" > "$WORK/c90-O2"; chmod +x "$WORK/c90-O2"
@@ -30,8 +32,12 @@ take() {   # suite prefix, image: copied with vm6747sim's own output and status 
     cp "$2" "$WORK/ref/$id.out"
     ( ulimit -t 60 2>/dev/null; "$VMSIM" --run "$2" ) > "$WORK/vm/$id.out" 2>&1 < /dev/null; echo $? > "$WORK/vm/$id.rc"
 }
-[ "$WHICH" = c90 ] || for i in "$CPP"/tests/out-tms6747/*.ti.out; do take p "$i"; done
-[ "$WHICH" = cpp11 ] || for i in "$C90"/tests/out-tms6747/*.ti.out; do take c "$i"; done
+if [ -n "${FROM:-}" ]; then cp "$FROM"/ref/*.out "$WORK/ref/" && cp "$FROM"/vm/* "$WORK/vm/" || exit 1
+else
+    [ "$WHICH" = c90 ] || for i in "$CPP"/tests/out-tms6747/*.ti.out; do take p "$i"; done
+    [ "$WHICH" = cpp11 ] || for i in "$C90"/tests/out-tms6747/*.ti.out; do take c "$i"; done
+fi
+if [ -n "${PREPARE:-}" ]; then mkdir -p "$PREPARE" && cp -R "$WORK/ref" "$WORK/vm" "$PREPARE/" && echo "referee: prepared in $PREPARE"; exit 0; fi
 N=$(ls "$WORK/ref"/*.out | wc -l | tr -d ' ')
 echo "referee: $N images, shipping to $WINDOWS for TI's C6747 simulator"
 

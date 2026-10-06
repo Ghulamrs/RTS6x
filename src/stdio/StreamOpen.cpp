@@ -1,6 +1,6 @@
 // Spec: ISO C 7.19.5.3 (fopen: r, w, a, each with + and b in either order), 7.19.5.1 (fclose) and
-// 7.19.4.3 (tmpfile: removed when closed). The host's own flags say the same as the mode; a refusal
-// sets errno, EINVAL for a mode C does not have, ENOENT for one the host turned down.
+// 7.19.4.3 (tmpfile: removed when closed). The host's flags say the same as the mode, binary only for
+// a b (a text file on a Windows host has CR LF); errno EINVAL for a bad mode, ENOENT for a refusal.
 
 #include <stdlib.h>
 #include <errno.h>
@@ -12,10 +12,11 @@ namespace rts6x {
 
 bool Stream::parseMode(const char *mode, unsigned &host, unsigned &own)
 {
-    bool update = false;
+    bool update = false, binary = false;
     for (const char *p = mode + 1; *p; p++) {
         if (*p == '+') update = true;
-        else if (*p != 'b') return false;
+        else if (*p == 'b') binary = true;
+        else return false;
     }
     switch (mode[0]) {
     case 'r': host = CioChannel::ReadOnly; own = Readable; break;
@@ -27,7 +28,7 @@ bool Stream::parseMode(const char *mode, unsigned &host, unsigned &own)
         host = (host & ~3u) | CioChannel::ReadWrite;
         own = Readable | Writable;
     }
-    host |= CioChannel::Binary;
+    if (binary) host |= CioChannel::Binary;
     return true;
 }
 

@@ -29,7 +29,7 @@ public:
     static int write(int fd, const char *bytes, unsigned count);
     // At most count (and DataCapacity) bytes in one request: the number, 0 at the end, or -1.
     static int read(int fd, char *bytes, unsigned count);
-    // A host descriptor for path, or -1.
+    // A descriptor for path, chosen here and named to the host in the request, or -1.
     static int open(const char *path, unsigned flags);
     static int close(int fd);
     // The new position from the start of the file, or -1.
