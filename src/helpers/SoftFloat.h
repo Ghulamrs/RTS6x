@@ -60,6 +60,9 @@ public:
 class FloatArithmetic {
 public:
     static unsigned long long divide(const FloatFormat &format, unsigned long long a, unsigned long long b);
+    // The same on doubles and floats: where divd.s and divf.s hand what is not normal over.
+    static double divideBinary64(double x, double y);
+    static float divideBinary32(float x, float y);
     // Truncated toward zero to a width-bit integer; beyond its range, the nearest end of it.
     static unsigned long long toUnsigned(const FloatFormat &format, unsigned long long bits, int width);
     static long long toSigned64(const FloatFormat &format, unsigned long long bits);
@@ -73,6 +76,20 @@ private:
     {
         return bits | (1ull << (format.fractionBits() - 1));
     }
+};
+
+// floor(n 2^shift / d), shift <= 55, and whether it leaves a remainder, for n and d in [2^52, 2^53):
+// guessed by Newton's method for 1/d in binary64 (the C674x's MPYDP and SUBDP), then made exact by
+// the integer remainder - the guess decides only how fast, never the bits.
+class SignificandDivision {
+public:
+    SignificandDivision(unsigned long long n, unsigned long long d, int shift, int steps);
+    unsigned long long quotient() const { return quotient_; }
+    bool inexact() const { return inexact_; }
+
+private:
+    unsigned long long quotient_;
+    bool inexact_;
 };
 
 // The bits of a double or a float, and back.

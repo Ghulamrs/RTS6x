@@ -14,6 +14,8 @@ class FloatText {
 public:
     // The number s begins with; end where it stopped (s if none); range set on inexact underflow.
     static unsigned long long read(const FloatFormat &format, const char *s, const char **end, bool &range);
+    // strtod's way in: a plain decimal of <= 19 significant digits, decided short; else false, read().
+    static bool quick(const char *s, const char **end, unsigned long long &bits);
 
 private:
     // Kept digits: as many as any binary64 value needs exactly, plus the ones that decide a tie.
@@ -27,6 +29,13 @@ private:
                                           const char **end, bool &range);
     static unsigned long long decimal(const FloatFormat &format, bool negative, const char *s,
                                       const char **end, bool &range);
+    // An exponent part "e+12" at p, added to exponent; where the number ends.
+    static const char *exponentPart(const char *p, int &exponent);
+    // w x 10^exponent when one correctly rounded operation gives it exactly (Clinger 1990): w and
+    // 10^|exponent| both exact in the format; false where the long way is needed.
+    static bool shortWay(const FloatFormat &format, bool negative, unsigned long long w, int exponent,
+                         unsigned long long &bits);
+    static bool shortWay64(bool negative, unsigned long long w, int exponent, unsigned long long &bits);
     // digits x 10^exponent, the digits' integer already in d, sticky for any nonzero digit dropped.
     static unsigned long long scale(const FloatFormat &format, bool negative, BigNumber &d, int count,
                                     int exponent, bool sticky, bool &range);

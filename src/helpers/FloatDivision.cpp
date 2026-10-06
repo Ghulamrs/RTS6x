@@ -1,6 +1,6 @@
 // Spec: IEEE 754 6.1-6.2 and 7.2-7.3: x/y with NaN in giving NaN out, inf/inf and 0/0 the default
 // NaN, x/0 an infinity, x/inf a zero, the sign the operands' exclusive or; else the exact quotient,
-// rounded. The quotient's bits by long division, the remainder's non-zero-ness the sticky bit.
+// rounded. The quotient's bits and remainder from SignificandDivision, its remainder the sticky bit.
 
 #include "SoftFloat.h"
 
@@ -19,15 +19,9 @@ unsigned long long FloatArithmetic::divide(const FloatFormat &format, unsigned l
         return x.kind() == UnpackedFloat::Zero ? format.nan() : format.infinity(negative);
     if (x.kind() == UnpackedFloat::Zero) return format.zero(negative);
 
-    // Both significands in [2^(p-1), 2^p): k turns give floor(sx / sy x 2^(k-1)), p + 2 bits or more.
-    const int turns = format.precision() + 3;
-    unsigned long long q = 0, r = x.significand(), d = y.significand();
-    for (int i = 0; i < turns; i++) {
-        q <<= 1;
-        if (r >= d) { r -= d; q |= 1; }
-        r <<= 1;
-    }
-    return FloatPacker::pack(format, negative, x.exponent() - y.exponent() - (turns - 1), q, r != 0);
+    const int up = 52 - format.fractionBits(), shift = format.precision() + 2;
+    SignificandDivision q(x.significand() << up, y.significand() << up, shift, up > 0 ? 3 : 4);
+    return FloatPacker::pack(format, negative, x.exponent() - y.exponent() - shift, q.quotient(), q.inexact());
 }
 
 }  // namespace rts6x

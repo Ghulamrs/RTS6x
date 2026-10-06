@@ -1,9 +1,10 @@
-// Spec: ISO C 7.20.1.3/5 and F.5 - a decimal significand and exponent, converted correctly rounded.
-// The digits are an integer D and the value D x 10^e: for e >= 0 the product is formed whole; for
-// e < 0, D x 2^k is divided by 10^-e with k chosen to leave a 63- or 64-bit quotient and a remainder.
+// Spec: ISO C 7.20.1.3/5 and F.5 - a decimal converted correctly rounded: FloatTextShort's one rounding
+// where it is exact; else the digits' integer D times 10^e formed whole for e >= 0, and for e < 0,
+// D x 2^k divided by 10^-e with k chosen to leave a 63- or 64-bit quotient and a remainder.
 
 #include "FloatText.h"
 #include "BigNumber.h"
+#include "DecimalBinary.h"
 #include "../ctype/CharacterClass.h"
 
 namespace rts6x {
@@ -15,12 +16,55 @@ BigNumber numerator, denominator;
 
 }  // namespace
 
+const char *FloatText::exponentPart(const char *p, int &exponent)
+{
+    if (*p != 'e' && *p != 'E') return p;
+    const char *q = p + 1;
+    bool down = false;
+    if (*q == '+' || *q == '-') down = *q++ == '-';
+    if (!CharacterClass::digit((unsigned char)*q)) return p;
+    long e = 0;
+    for (; CharacterClass::digit((unsigned char)*q); q++)
+        if (e < 100000) e = e * 10 + (*q - '0');
+    exponent += down ? -(int)e : (int)e;
+    return q;
+}
+
 unsigned long long FloatText::decimal(const FloatFormat &format, bool negative, const char *s,
                                       const char **end, bool &range)
 {
+    // The short way first: 19 significant digits at most in a 64-bit w, zeros past them only.
     const char *p = s;
     int count = 0, exponent = 0;
-    bool sticky = false, point = false;
+    bool point = false, more = false;
+    unsigned long long w = 0;
+    for (;; p++) {
+        if (*p == '.' && !point) { point = true; continue; }
+        unsigned digit = (unsigned)(*p - '0');
+        if (digit > 9) break;
+        if (count == 0 && digit == 0) {
+            if (point) exponent--;
+        } else if (count < 19) {
+            w = w * 10 + digit;
+            count++;
+            if (point) exponent--;
+        } else {
+            more = more || digit != 0;
+            if (!point) exponent++;
+        }
+    }
+    *end = exponentPart(p, exponent);
+    if (count == 0) return format.zero(negative);
+    unsigned long long bits;
+    if (!more && shortWay(format, negative, w, exponent, bits)) return bits;
+    if (!more && format.precision() == 53 && DecimalBinary::toBinary64(w, exponent, negative, bits)) return bits;
+
+    // The long way: every digit up to MaxDigits in a BigNumber.
+    p = s;
+    count = 0;
+    exponent = 0;
+    bool sticky = false;
+    point = false;
     numerator.set(0);
     for (;; p++) {
         if (*p == '.' && !point) { point = true; continue; }
@@ -39,19 +83,7 @@ unsigned long long FloatText::decimal(const FloatFormat &format, bool negative, 
             if (!point) exponent++;
         }
     }
-    if ((*p == 'e' || *p == 'E')) {
-        const char *q = p + 1;
-        bool down = false;
-        if (*q == '+' || *q == '-') down = *q++ == '-';
-        if (CharacterClass::digit((unsigned char)*q)) {
-            long e = 0;
-            for (; CharacterClass::digit((unsigned char)*q); q++)
-                if (e < 100000) e = e * 10 + (*q - '0');
-            exponent += down ? -(int)e : (int)e;
-            p = q;
-        }
-    }
-    *end = p;
+    exponentPart(p, exponent);
     return scale(format, negative, numerator, count, exponent, sticky, range);
 }
 

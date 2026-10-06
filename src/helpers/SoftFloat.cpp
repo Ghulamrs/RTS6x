@@ -25,9 +25,16 @@ UnpackedFloat::UnpackedFloat(unsigned long long bits, const FloatFormat &format)
 
 int FloatPacker::bitLength(unsigned long long x)
 {
+    // Halving the width six times: a fixed few steps where one bit a turn took up to 64.
     int n = 0;
-    while (x != 0) { x >>= 1; n++; }
-    return n;
+    if (x >> 32) { n += 32; x >>= 32; }
+    unsigned w = (unsigned)x;
+    if (w >> 16) { n += 16; w >>= 16; }
+    if (w >> 8) { n += 8; w >>= 8; }
+    if (w >> 4) { n += 4; w >>= 4; }
+    if (w >> 2) { n += 2; w >>= 2; }
+    if (w >> 1) { n += 1; w >>= 1; }
+    return n + (int)w;
 }
 
 unsigned long long FloatPacker::pack(const FloatFormat &format, bool negative, int exponent,

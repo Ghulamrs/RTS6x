@@ -9,8 +9,10 @@
 extern "C" double strtod(const char *s, char **end)
 {
     const char *stop;
-    bool range;
-    unsigned long long bits = rts6x::FloatText::read(rts6x::FloatFormat::binary64(), s, &stop, range);
+    bool range = false;
+    unsigned long long bits;
+    if (!rts6x::FloatText::quick(s, &stop, bits))
+        bits = rts6x::FloatText::read(rts6x::FloatFormat::binary64(), s, &stop, range);
     if (range) rts6x::ErrorNumber::set(ERANGE);
     if (end) *end = (char *)stop;
     return rts6x::FloatBits::toDouble(bits);
