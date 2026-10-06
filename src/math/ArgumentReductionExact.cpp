@@ -69,7 +69,7 @@ int ArgumentReduction::exact(double ax, DoubleDouble &r)
     double h = (double)hiBits * MathBits::powerOfTwo(msb - 189 - 52);
     double l = (double)loBits * MathBits::powerOfTwo(msb - 189 - 105);
     DoubleDouble t = DoubleDouble::quickSum(h, l);
-    r = t.times(DoubleDouble(MathConstants::halfPiHi(), MathConstants::halfPiLo()));
+    r = t.times(DoubleDouble(MathConstants::halfPiHi, MathConstants::halfPiLo));
     if (negative) r = r.negated();
     return q & 3;
 }

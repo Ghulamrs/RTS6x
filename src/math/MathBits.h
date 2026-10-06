@@ -13,11 +13,24 @@ class MathBits {
 public:
     static unsigned long long of(double d) { return FloatBits::of(d); }
     static double from(unsigned long long u) { return FloatBits::toDouble(u); }
+    // The two 32-bit words of a double, and a double from them: one store and one load each, where
+    // a 64-bit integer costs cpp11 a generic shift for every >> 32.
+    static unsigned high(double d) { union { double d; unsigned w[2]; } x; x.d = d; return x.w[1]; }
+    static unsigned low(double d) { union { double d; unsigned w[2]; } x; x.d = d; return x.w[0]; }
+    static double fromWords(unsigned hi, unsigned lo) { union { double d; unsigned w[2]; } x; x.w[1] = hi; x.w[0] = lo; return x.d; }
+    // v * 2^k for a normal v whose product is normal: k added to the exponent field.
+    static double scaled(double v, int k)
+    {
+        union { double d; unsigned w[2]; } x;
+        x.d = v;
+        x.w[1] += (unsigned)k << 20;
+        return x.d;
+    }
 
-    static unsigned long long signBit() { return 1ull << 63; }
-    static unsigned long long magnitudeMask() { return ~signBit(); }
-    static unsigned long long fractionMask() { return (1ull << 52) - 1; }
-    static int biased(unsigned long long u) { return (int)((u >> 52) & 0x7FF); }
+    static unsigned long long signBit() { return 0x8000000000000000ull; }
+    static unsigned long long magnitudeMask() { return 0x7FFFFFFFFFFFFFFFull; }
+    static unsigned long long fractionMask() { return 0x000FFFFFFFFFFFFFull; }
+    static int biased(unsigned long long u) { return (int)((unsigned)(u >> 32) >> 20 & 0x7FF); }
     static bool negative(unsigned long long u) { return (u >> 63) != 0; }
     static bool isNaN(unsigned long long u) { return (u & magnitudeMask()) > 0x7FF0000000000000ull; }
     static bool isInfinite(unsigned long long u) { return (u & magnitudeMask()) == 0x7FF0000000000000ull; }
@@ -28,15 +41,15 @@ public:
     static double zero(bool negative) { return from(negative ? signBit() : 0); }
     static double infinity(bool negative) { return from((negative ? signBit() : 0) | 0x7FF0000000000000ull); }
     static double notANumber() { return from(0x7FF8000000000000ull); }
-    static double absolute(double x) { return from(of(x) & magnitudeMask()); }
+    static double absolute(double x) { return fromWords(high(x) & 0x7FFFFFFFu, low(x)); }
     static double withSign(double magnitude, bool negative)
     {
         return from((of(magnitude) & magnitudeMask()) | (negative ? signBit() : 0));
     }
     // 2^k for -1022 <= k <= 1023.
-    static double powerOfTwo(int k) { return from((unsigned long long)(k + 1023) << 52); }
+    static double powerOfTwo(int k) { return fromWords((unsigned)(k + 1023) << 20, 0); }
     // |x| below 2^k, x normal or subnormal or zero: compared on the magnitude's bits.
-    static bool below(double x, int k) { return (of(x) & magnitudeMask()) < ((unsigned long long)(k + 1023) << 52); }
+    static bool below(double x, int k) { return (high(x) & 0x7FFFFFFFu) < (unsigned)(k + 1023) << 20; }
 
     // (m.hi + m.lo) * 2^k rounded once, m.hi > 0 and normal, negated if asked; past the largest
     // double, ERANGE and infinity; subnormal or zero, ERANGE.

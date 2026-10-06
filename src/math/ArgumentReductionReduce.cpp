@@ -19,11 +19,11 @@ int ArgumentReduction::reduce(double x, DoubleDouble &r)
     }
     bool done = false;
     if (ax < 1048576.0) {
-        int k = (int)(ax * MathConstants::twoOverPi() + 0.5);
+        int k = (int)(ax * MathConstants::twoOverPi + 0.5);
         double kd = (double)k;
-        DoubleDouble s = DoubleDouble::sum(ax - kd * MathConstants::halfPiPart1(), -kd * MathConstants::halfPiPart2());
-        s = s.plus(-kd * MathConstants::halfPiPart3());
-        s = s.plus(-kd * MathConstants::halfPiPart4());
+        DoubleDouble s = DoubleDouble::sum(ax - kd * MathConstants::halfPiPart1, -kd * MathConstants::halfPiPart2);
+        s = s.plus(-kd * MathConstants::halfPiPart3);
+        s = s.plus(-kd * MathConstants::halfPiPart4);
         if (!MathBits::below(s.hi, -59)) { r = s; q = k & 3; done = true; }
     }
     if (!done) q = exact(ax, r);

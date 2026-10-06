@@ -10,8 +10,10 @@ double Logarithm::common(double x)
 {
     double result;
     if (special(x, result)) return result;
-    DoubleDouble l = kernel(x);
-    return l.times(DoubleDouble(MathConstants::invLn10Hi(), MathConstants::invLn10Lo())).value();
+    double lo;
+    double hi = kernel(x, lo);
+    DoubleDouble l = DoubleDouble::quickSum(hi, lo);
+    return l.times(DoubleDouble(MathConstants::invLn10Hi, MathConstants::invLn10Lo)).value();
 }
 
 }  // namespace rts6x

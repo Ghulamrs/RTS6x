@@ -19,12 +19,16 @@ public:
     static DoubleDouble kernel(const DoubleDouble &y);
 
 private:
+    // atan2 for every other pair: the zeros, infinities and NaNs, and exponents far apart.
+    static double edge(double y, double x);
     // sqrt(1 - a^2) as a double-double, 0 <= a < 1.
     static DoubleDouble cosineOf(double a);
     static DoubleDouble halfPi();
     static DoubleDouble pi();
 
     static const double atanHi_[17], atanLo_[17];
+    // atan(j/32) for j = 0..32, atan2's finer table.
+    static const double atan32Hi_[33], atan32Lo_[33];
 };
 
 }  // namespace rts6x

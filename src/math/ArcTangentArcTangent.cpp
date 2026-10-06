@@ -15,7 +15,7 @@ double ArcTangent::arcTangent(double x)
     if (MathBits::below(x, -27)) return x;
     double a = MathBits::absolute(x);
     double v;
-    if (!MathBits::below(a, 60)) v = MathConstants::halfPiHi();
+    if (!MathBits::below(a, 60)) v = MathConstants::halfPiHi;
     else if (a <= 1.0) v = kernel(DoubleDouble(a, 0.0)).value();
     else v = halfPi().minus(kernel(DoubleDouble(1.0, 0.0).over(DoubleDouble(a, 0.0)))).value();
     return negative ? -v : v;

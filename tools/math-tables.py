@@ -182,21 +182,29 @@ for i in range(3):
 parts.append(float(rest))
 for i, p in enumerate(parts):
     const('halfPiPart%d' % (i + 1), p, 'pi/2 = part1 + part2 + part3 + part4' if i == 0 else '')
+for i, p in enumerate(parts):
+    const('piBy256Part%d' % (i + 1), p / 128, 'pi/256 = the four parts of pi/2 over 128, exactly' if i == 0 else '')
+const('twoFiftySixByPi', float(256 / pi), '256/pi, nearest double: the sine table index guess')
 const('ln2Hi', truncated(ln2, 42), 'ln 2 = ln2Hi + ln2Lo, ln2Hi of 42 bits: e * ln2Hi is exact')
 const('ln2Lo', float(ln2 - Fraction(truncated(ln2, 42))), '')
 c1 = truncated(ln2 / 64, 36)
 const('ln2By64Hi', c1, 'ln 2 / 64 = hi + lo, hi of 36 bits: n * hi exact for |n| < 2^17')
 const('ln2By64Lo', float(ln2 / 64 - Fraction(c1)), '')
 const('sixtyFourByLn2', float(64 / ln2), '64 / ln 2, nearest double')
+c1 = truncated(ln2 / 128, 35)
+const('ln2By128Hi', c1, 'ln 2 / 128 = hi + lo, hi of 35 bits: n * hi exact for |n| < 2^18')
+const('ln2By128Lo', float(ln2 / 128 - Fraction(c1)), '')
+const('oneTwentyEightByLn2', float(128 / ln2), '128 / ln 2, nearest double')
 inv10 = 1 / ln10
 const('invLn10Hi', dd(inv10)[0], '1 / ln 10, double-double')
 const('invLn10Lo', dd(inv10)[1], '')
 
-lines = []
+lines, defs = [], []
 for name, value, note in consts:
     if note:
         lines.append('    // %s' % note)
-    lines.append('    static double %s() { return %s; }' % (name, value))
+    lines.append('    static const double %s;' % name)
+    defs.append('const double MathConstants::%s = %s;' % (name, value))
 write('MathConstants.h', '''// Spec: ISO C 7.12 (the constants its functions are built on), IEEE 754 binary64. %s
 // pi from Machin's formula, ln 2 and ln 10 from the atanh series, in integers to 700 bits; each
 // value the nearest double, or a sum of doubles where one is not enough.
@@ -205,6 +213,8 @@ write('MathConstants.h', '''// Spec: ISO C 7.12 (the constants its functions are
 
 namespace rts6x {
 
+// Data members rather than inline functions: cpp11 loads one where it is named in an expression,
+// where an inline call there costs a push and a pop of everything evaluated before it.
 class MathConstants {
 public:
 %s
@@ -214,15 +224,27 @@ public:
 
 #endif
 ''' % (GEN, '\n'.join(lines)))
+write('MathConstants.cpp', '''// Spec: ISO C 7.12 (the constants its functions are built on), IEEE 754 binary64: the values
+// MathConstants.h declares. %s
+
+#include "MathConstants.h"
+
+namespace rts6x {
+
+%s
+
+}  // namespace rts6x
+''' % (GEN, '\n'.join(defs)))
 
 # ---- 2^(j/64), j = 0..63 ----------------------------------------------------------------------
 hi, lo = [], []
-for j in range(64):
-    v = fx(exp_fixed(LN2 * j // 64))
-    h, l = dd(v)
+for j in range(128):
+    v = fx(exp_fixed(LN2 * j // 128))
+    h = truncated(v, 26)
     hi.append(h)
-    lo.append(l)
-write('ExpTable.cpp', '''// Spec: ISO C 7.12.6.1 (exp): 2^(j/64) for j = 0..63 as double-doubles. %s
+    lo.append(float(v - Fraction(h)))
+write('ExpTable.cpp', '''// Spec: ISO C 7.12.6.1 (exp): 2^(j/128) for j = 0..127 as top + rest, the top of 26 bits (so its
+// product with a 26-bit number is exact), the rest the nearest double to what is left. %s
 
 #include "ExpKernel.h"
 
@@ -231,19 +253,20 @@ namespace rts6x {
 %s
 %s
 }  // namespace rts6x
-''' % (GEN, table('ExpKernel', 'powerHi_', hi), table('ExpKernel', 'powerLo_', lo)))
+''' % (GEN, table('ExpKernel', 'powerTop_', hi), table('ExpKernel', 'powerRest_', lo)))
 
 # ---- log: r_j the nearest double to 1/(1 + j/128); -ln r_j as a double-double ---------------
 recip, lhi, llo = [], [], []
 for j in range(128):
-    r = float(Fraction(128, 128 + j))
-    recip.append(r)
-    v = -fx(ln_rational(Fraction(r)))
-    h, l = dd(v)
-    lhi.append(h)
-    llo.append(l)
-write('LogTable.cpp', '''// Spec: ISO C 7.12.6.7 (log): r_j, the double nearest 1/(1 + j/128), and -ln r_j as a
-// double-double, for j = 0..127. %s
+    r = Fraction(round(Fraction(256 * 128, 128 + j)), 256)
+    recip.append(float(r))
+    v = -fx(ln_rational(r))
+    h = Fraction(int(v * 2 ** 42), 2 ** 42)
+    lhi.append(float(h))
+    llo.append(float(v - h))
+write('LogTable.cpp', '''// Spec: ISO C 7.12.6.7 (log): r_j, 1/(1 + j/128) rounded to 8 bits (so m r_j - 1 is exact from
+// two products), and -ln r_j as hi + lo, hi a multiple of 2^-42 (so e ln2Hi + hi is exact), for
+// j = 0..127. %s
 
 #include "Logarithm.h"
 
@@ -266,8 +289,15 @@ for j in range(53):
     a, b = dd(fx(c))
     chi.append(a)
     clo.append(b)
-write('SinCosTable.cpp', '''// Spec: ISO C 7.12.4.6, 7.12.4.5 (sin, cos): sin(j/64) and cos(j/64) as double-doubles for
-// j = 0..52, which covers |r| <= pi/4. %s
+rows = []
+for j in range(128):
+    s, c = sin_cos_fixed(PI * j // 256)
+    for v in (fx(s), fx(c)):
+        t = truncated(v, 26) if v else 0.0
+        rows += [t, float(v - Fraction(t))]
+write('SinCosTable.cpp', '''// Spec: ISO C 7.12.4.6, 7.12.4.5 (sin, cos): sin(j/64) and cos(j/64) for j = 0..52, which
+// covers |r| <= pi/4, as double-doubles; and of j pi/256 for j = 0..127 in rows of four, sin and
+// cos, each a top of 26 bits (exact times another 26 bits) and the nearest double to the rest. %s
 
 #include "Trigonometric.h"
 
@@ -277,9 +307,11 @@ namespace rts6x {
 %s
 %s
 %s
+%s
 }  // namespace rts6x
 ''' % (GEN, table('Trigonometric', 'sinHi_', shi), table('Trigonometric', 'sinLo_', slo),
-       table('Trigonometric', 'cosHi_', chi), table('Trigonometric', 'cosLo_', clo)))
+       table('Trigonometric', 'cosHi_', chi), table('Trigonometric', 'cosLo_', clo),
+       table('Trigonometric', 'rows_', rows)))
 
 # ---- atan(j/16), j = 0..16 --------------------------------------------------------------------
 ahi, alo = [], []
@@ -287,7 +319,13 @@ for j in range(17):
     h, l = dd(fx(atan_fixed(ONE * j // 16)))
     ahi.append(h)
     alo.append(l)
-write('AtanTable.cpp', '''// Spec: ISO C 7.12.4.3 (atan): atan(j/16) as double-doubles for j = 0..16. %s
+bhi, blo = [], []
+for j in range(33):
+    h, l = dd(fx(atan_fixed(ONE * j // 32)))
+    bhi.append(h)
+    blo.append(l)
+write('AtanTable.cpp', '''// Spec: ISO C 7.12.4.3, 7.12.4.4 (atan, atan2): atan(j/16) for j = 0..16 and atan(j/32) for
+// j = 0..32, as double-doubles. %s
 
 #include "ArcTangent.h"
 
@@ -295,8 +333,55 @@ namespace rts6x {
 
 %s
 %s
+%s
+%s
 }  // namespace rts6x
-''' % (GEN, table('ArcTangent', 'atanHi_', ahi), table('ArcTangent', 'atanLo_', alo)))
+''' % (GEN, table('ArcTangent', 'atanHi_', ahi), table('ArcTangent', 'atanLo_', alo),
+       table('ArcTangent', 'atan32Hi_', bhi), table('ArcTangent', 'atan32Lo_', blo)))
+
+# ---- 1/sqrt(m) on 64 bins of [1, 4): a line through two Chebyshev nodes of each ------------
+import math
+
+
+def rsqrt(v):
+    """1/sqrt(v) for a positive Fraction v, to 700 bits."""
+    return Fraction(ONE, math.isqrt(int(v * ONE * ONE)))
+
+
+base, slope = [], []
+for i in range(64):
+    lo = Fraction(1 + i // 32) * (1 + Fraction(i % 32, 32))
+    width = Fraction(1 + i // 32, 32)
+    mid = lo + width / 2
+    d = width / 2 * Fraction(7071067811865476, 10 ** 16)
+    n1, n2 = mid - d, mid + d
+    k = (rsqrt(n2) - rsqrt(n1)) / (n2 - n1)
+    slope.append(float(k))
+    base.append(float(rsqrt(n1) - k * n1))
+write('SqrtTable.cpp', '''// Spec: ISO C 7.12.7.5 (sqrt): the first guess at 1/sqrt(m), m in [1, 4) in 64 bins (m's last
+// exponent bit and five fraction bits), as base + slope * m, within 2^-13 of the true value. %s
+
+#include "SquareRoot.h"
+
+namespace rts6x {
+
+%s
+%s
+}  // namespace rts6x
+''' % (GEN, table('SquareRoot', 'base_', base), table('SquareRoot', 'slope_', slope)))
+
+# ---- 1/m on 128 bins of [1, 2): the value at each bin's middle, within 2^-8 ------------------
+seeds = [float(Fraction(256, 257 + 2 * i)) for i in range(128)]
+write('ReciprocalTable.cpp', '''// Spec: IEEE 754 binary64: the first guess for Newton's method on 1/m, m in [1, 2) in 128 bins
+// by its top seven fraction bits - 1/m at each bin's middle, within 2^-8 of 1/m. %s
+
+#include "NewtonIteration.h"
+
+namespace rts6x {
+
+%s
+}  // namespace rts6x
+''' % (GEN, table('NewtonIteration', 'seed_', seeds)))
 
 # ---- 2/pi to 1216 bits, 38 words, most significant first ----------------------------------
 P = 1216
@@ -319,4 +404,4 @@ const unsigned ArgumentReduction::twoOverPi_[38] = {
 
 }  // namespace rts6x
 ''' % (GEN, '\n'.join(rows)))
-print('math-tables: wrote MathConstants.h, ExpTable.cpp, LogTable.cpp, SinCosTable.cpp, AtanTable.cpp, TwoOverPiBits.cpp')
+print('math-tables: wrote MathConstants.h, MathConstants.cpp, ExpTable.cpp, LogTable.cpp, SinCosTable.cpp, AtanTable.cpp, SqrtTable.cpp, ReciprocalTable.cpp, TwoOverPiBits.cpp')

@@ -15,7 +15,9 @@ double Power::finite(double x, double y, bool negative)
     bool up = (MathBits::of(x) > 0x3FF0000000000000ull) != MathBits::negative(uy);
     // |y| >= 2^64 and x != 1: |y ln x| >= 2^64 * 2^-54, far past either end.
     if (MathBits::biased(uy) >= 1023 + 64) return up ? MathError::overflow(negative) : MathError::underflow(negative);
-    DoubleDouble l = Logarithm::kernel(x);
+    double lo;
+    double hi = Logarithm::kernel(x, lo);
+    DoubleDouble l = DoubleDouble::quickSum(hi, lo);
     DoubleDouble p = DoubleDouble::product(y, l.hi);
     DoubleDouble z = DoubleDouble::quickSum(p.hi, p.lo + y * l.lo);
     if (z.hi > 746.0) return MathError::overflow(negative);

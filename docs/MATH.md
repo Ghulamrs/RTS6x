@@ -25,8 +25,8 @@ vm6747sim models it). Division and conversions are software helpers. So:
 - subnormal inputs are taken apart with `UnpackedFloat` (integers); subnormal results are
   built by `MathBits::compose`, which rounds `(hi + lo) 2^k` once from the bits;
 - every kernel works on numbers near 1, so no intermediate is ever subnormal;
-- no kernel divides: `NewtonIteration` gives `1/d` and `1/sqrt(w)` with multiplications
-  only, and a double-double quotient corrects it with the exact remainder.
+- no kernel divides: `NewtonIteration` gives `1/d` and `SquareRoot::inverse` `1/sqrt(w)` with
+  multiplications only, and a double-double quotient corrects it with the exact remainder.
 
 ## The functions
 
@@ -35,12 +35,12 @@ vm6747sim models it). Division and conversions are software helpers. So:
 | `fabs`, `floor`, `ceil`, `trunc`, `round`, `modf`, `frexp` | the bits: fraction cleared, carried into, or the exponent read | `BinaryScale*`, `IntegralPart*` |
 | `ldexp` | the exponent field moved; where the result leaves the normal range, `FloatPacker` rounds once | `BinaryScaleScale.cpp` |
 | `fmod` | integer long division of the significands, 11 bits a step: exact | `RemainderTruncated.cpp` |
-| `sqrt` | integer root `T = floor(sqrt(S 2^52))`, guessed by Newton in double, made exact in integers, rounded up when `S 2^52 - T^2 > T` | `SquareRootRoot.cpp` |
-| `exp` | `e^z = 2^k 2^(j/64) e^r`, `|r| <= ln2/128`, ln2/64 in two parts (the first of 36 bits, so `n ln2/64` is exact); `e^r` by Taylor to `r^7`; the table as double-doubles | `ExpKernel*`, `ExponentialNatural.cpp` |
-| `log`, `log10` | `x = 2^e m`, `m r_j = 1 + u` exactly (Dekker), `ln x = e ln2 - ln r_j + ln(1+u)`, Taylor to `u^9`, summed as a double-double; `log10` times `1/ln10` as a double-double, so a power of ten gives its exponent exactly | `Logarithm*` |
-| `pow` | Annex F's special cases in order, then `e^(y ln x)` with `ln x` a double-double and `y ln x` an exact product (about 2^-66 relative), `ExpKernel`, one rounding | `Power*` |
-| `sin`, `cos`, `tan` | reduction `x = k pi/2 + r`: Cody-Waite with pi/2 in four parts below 2^20 (accepted when `|r| >= 2^-59`, the error being under 2^-129), else Payne-Hanek: x's significand times a 192-bit window of 2/pi's 1216 bits. Then `r = j/64 + t` with sin and cos of j/64 from a table, Taylor for t, the addition formulas; `tan` a double-double quotient | `ArgumentReduction*`, `Trigonometric*` |
-| `atan`, `atan2`, `asin`, `acos` | one kernel: `atan y = atan(j/16) + atan((y - c)/(1 + y c))`, Taylor to `t^11`; above 1, `pi/2 - atan(1/x)`; `asin`, `acos` through `sqrt(1 - x^2)` as a double-double, choosing the quotient below 1; `atan2` scales both arguments near one first | `ArcTangent*` |
+| `sqrt` | a table line for `1/sqrt(m)` (64 bins, `2^-14`) and two Goldschmidt steps give `g` within an ulp; `m - g^2` exactly (Dekker) says which neighbour is the root; within `2^-13` ulp of a half, the integer root `T = floor(sqrt(S 2^52))` settles it exactly | `SquareRoot*`, `SqrtTable.cpp` |
+| `exp` | `e^z = 2^k 2^(j/64) e^a e^c`, `a = z - n ln2Hi/64` exact (36-bit part), `c` the rest; `e^a` by Taylor to `a^7` in Estrin's order; the table as a 26-bit top and a rest, so `top * a`'s head is exact; plain doubles, no call | `ExpKernel*`, `ExponentialNatural.cpp` |
+| `log`, `log10` | `x = 2^e m`, `r_j` = `1/(1 + j/128)` to 8 bits so `u = m r_j - 1` is exact from two products (Tang), `-ln r_j` a multiple of `2^-42` plus a rest so `e ln2Hi - ln r_j` is exact; `ln(1+u)` by Taylor to `u^10`, `u^2` by Dekker; `log10` times `1/ln10` as a double-double, so a power of ten gives its exponent exactly | `Logarithm*` |
+| `pow` | for `x > 0` normal and `y` normal below `2^64` with a normal result, straight to the kernels; otherwise Annex F's special cases in order; `e^(y ln x)` with `ln x` a double-double and `y ln x` an exact product (about 2^-66 relative), `ExpKernel`, one rounding | `Power*` |
+| `sin`, `cos`, `tan` | below `2^13`: one Cody-Waite reduction by pi/256 (`n` the index, `t = x - n pi/256` with pi/256 in four parts), sin and cos of `(n mod 128) pi/256` from a table as 26-bit tops and rests, Taylor for `t`, the addition formulas, in plain doubles. Else, and where a sine's remainder is below `2^-37`: `x = k pi/2 + r` by Cody-Waite with pi/2 in four parts below 2^20 (accepted when `|r| >= 2^-59`), else Payne-Hanek (x's significand times a 192-bit window of 2/pi's 1216 bits), then the double-double kernels on `j/64 + t`; `tan` always this way, a double-double quotient | `ArgumentReduction*`, `Trigonometric*` |
+| `atan`, `atan2`, `asin`, `acos` | one kernel: `atan y = atan(j/16) + atan((y - c)/(1 + y c))`, Taylor to `t^11`; above 1, `pi/2 - atan(1/x)`; `asin`, `acos` through `sqrt(1 - x^2)` as a double-double, choosing the quotient below 1. `atan2` of two normal arguments within `2^60` of each other: both scaled, `n <= d` the magnitudes, `atan(n/d) = atan c + atan((n - c d)/(d + c n))` with the quotient formed once - a seed reciprocal, two Newton steps and the exact remainder - Taylor to `t^13` | `ArcTangent*` |
 | `sinh`, `cosh`, `tanh` | `e^x +- e^-x` from `ExpKernel` as double-doubles; below 1/16 the Taylor series of sinh and cosh; above 38, `e^x/2` alone | `Hyperbolic*` |
 
 Each C function is one tiny `extern "C"` file (`sin.cpp` ...) handing the work to a class.
@@ -79,6 +79,23 @@ reduction). At N = 20,000,000 (2026-10-06):
 | cosh | 0.500018 | 125,712 |
 | tanh | 0.502981 | 111,058 |
 
+The same check on Linux (g++ 11.5, glibc's libm as the comparison, so a different set is judged)
+before and after the speed work of 2026-10-07 (branch `speed/math`), N = 20,000,000 each:
+
+| function | before | after |
+| --- | --- | --- |
+| exp | 0.500016 | 0.500005 |
+| pow | 0.500139 | 0.500003 |
+| atan2 | 0.500223 | 0.500015 |
+| cosh | 0.500015 | 0.499998 |
+| tanh | 0.501176 | 0.500216 |
+| sin, cos, tan, log, log10, asin, acos, atan, sinh | as before: 0.500058, 0.500049, 0.500040, 0.500000, 0.499999, 0.500490, 0.500246, 0.500705, 0.500717 | the same |
+| sqrt and the exact functions | identical to libm | identical to libm |
+
+The sin and cos maxima are in the double-double path (huge arguments), which is unchanged; the
+6600 results of `math-values.cpp` are bit for bit the host's on the C6000 at -O0 and -O2, with
+both `rts6x.lib` and `rts6xd.lib`.
+
 The inputs cover every exponent, subnormals, x near 1 for the logarithms, huge
 trigonometric arguments and near multiples of pi/2, and exp's and pow's range edges.
 macOS's own tan differs from ours on 34% of these inputs, by up to 3 ulps, while ours
@@ -103,13 +120,31 @@ arithmetic flushed, and `atan2`'s tiny quotient, which the C674x divides in soft
 
 ## Speed on the C674x (vm6747sim, cycles a call, cpp11 -O2)
 
-floor 113, modf 182, ldexp 226, frexp 472, sqrt 1258, exp 1392, cos 1414, sin 1435, log 1654,
-log10 2072, pow 3595, sinh 3614, atan 3688, tanh 4193, tan 4742, atan2 7093, asin 7422, acos
-7621, sin of 1e30 (Payne-Hanek) 14598, fmod(3e8, 0.3) 20898.
+`tests/speed/math.cpp`'s functions one at a time, 300 calls each, the loop's own cost taken out;
+TI is `rts6740_elf_eh.lib` linked with the same program:
 
-Correct first (D8); what would make it faster, measured: cpp11 inlines none of
-`DoubleDouble`'s small members, so a kernel is mostly calls - each sum and product a call
-returning through memory. Writing the kernels with plain `double` locals would remove that,
-at the cost of the clarity the class gives. `fmod` with a large exponent gap is bound by the
-64-bit remainder helper, and `FloatPacker::pack` (used where `ldexp` leaves the normal range)
-by its bit-length loop.
+| function | before (2026-10-06) | after (2026-10-07) | TI |
+| --- | --- | --- | --- |
+| sin | 1913 | 713 | 274 |
+| cos | 1909 | 706 | 254 |
+| exp | 1403 | 507 | 514 |
+| log | 1639 | 618 | 693 |
+| sqrt | 1246 | 480 | 258 |
+| pow | 3590 | 1291 | 1045 |
+| atan2 | 7224 | 1173 | 997 |
+| `tests/speed/math.cpp` | 5,707,421 | 1,654,027 | 1,211,416 |
+
+The rest, from the earlier measurement and on paths not rewritten: floor 113, modf 182, ldexp 226,
+frexp 472, log10 2072, sinh 3614, atan 3688, tanh 4193, tan 4742, asin 7422, acos 7621, sin of
+1e30 (Payne-Hanek) 14598, fmod(3e8, 0.3) 20898.
+
+What cpp11 -O2 does with this code, measured, and why the kernels are written as they are: it
+inlines none of `DoubleDouble`'s members (each sum and product a call returning through memory),
+so the fast paths use plain `double`s; it keeps four doubles in saved registers and spills the
+rest, while an expression's temporaries stay in registers, so the kernels are long expressions over
+few named values; an inline call inside an expression costs a push and a pop of what was evaluated
+before it, so `MathConstants` are data members; a 64-bit shift is a generic sequence with branches,
+so the bits are read as 32-bit words through a union; and it does not fold constant expressions.
+What is left of the gap to TI is the schedule: every product waits out its nine delay slots.
+`fmod` with a large exponent gap is bound by the 64-bit remainder helper, and `FloatPacker::pack`
+(used where `ldexp` leaves the normal range) by its bit-length loop.

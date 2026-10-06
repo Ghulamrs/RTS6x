@@ -10,6 +10,17 @@ namespace rts6x {
 
 double Exponential::natural(double x)
 {
+    // 2^-54 <= |x| < 704, where e^x is normal: one test of the high word, then no other.
+    union { double d; unsigned w[2]; } v;
+    v.d = x;
+    unsigned top = v.w[1] & 0x7FFFFFFFu;
+    if (top - 0x3C900000u < 0x03F60000u) {
+        double h, l;
+        int k = ExpKernel::evaluate(x, 0.0, h, l);
+        v.d = h + l;
+        v.w[1] += (unsigned)k << 20;
+        return v.d;
+    }
     unsigned long long u = MathBits::of(x);
     if (MathBits::isNaN(u)) return x;
     if (MathBits::isInfinite(u)) return MathBits::negative(u) ? 0.0 : x;
@@ -17,9 +28,9 @@ double Exponential::natural(double x)
     if (MathBits::below(x, -54)) return 1.0;
     if (x > 710.0) return MathError::overflow(false);
     if (x < -746.0) return MathError::underflow(false);
-    DoubleDouble m;
-    int k = ExpKernel::evaluate(DoubleDouble(x, 0.0), m);
-    return MathBits::compose(m, k, false);
+    double h, l;
+    int k = ExpKernel::evaluate(x, 0.0, h, l);
+    return MathBits::compose(DoubleDouble::quickSum(h, l), k, false);
 }
 
 }  // namespace rts6x

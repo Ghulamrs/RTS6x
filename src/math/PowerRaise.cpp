@@ -3,6 +3,8 @@
 // a negative x with a y that is not an integer (EDOM).
 
 #include "Power.h"
+#include "ExpKernel.h"
+#include "Logarithm.h"
 #include "MathBits.h"
 #include "MathError.h"
 
@@ -10,6 +12,31 @@ namespace rts6x {
 
 double Power::raise(double x, double y)
 {
+    // x positive and normal, y normal below 2^64: none of the special cases, and the result normal
+    // where |y ln x| < 704 - on the high words alone, then the kernels with no call between.
+    union { double d; unsigned w[2]; } v;
+    v.d = x;
+    unsigned hx = v.w[1];
+    v.d = y;
+    if (hx - 0x00100000u < 0x7FE00000u && (v.w[1] & 0x7FFFFFFFu) - 0x00100000u < 0x43E00000u) {
+        double lo, zh = Logarithm::kernel(x, lo);
+        // The kernel leaves its Taylor tail in lo: hi + lo normalised first (Dekker's fast two-sum).
+        double hi = zh + lo;
+        lo = lo - (hi - zh);
+        // z = y ln x: y * hi exactly by Dekker's product (both split by Veltkamp's 2^27 + 1).
+        zh = y * hi;
+        double yh = y * 134217729.0, hh = hi * 134217729.0;
+        yh = yh - (yh - y);
+        hh = hh - (hh - hi);
+        double zl = (((yh * hh - zh) + yh * (hi - hh) + (y - yh) * hh) + (y - yh) * (hi - hh)) + y * lo;
+        v.d = zh;
+        if ((v.w[1] & 0x7FFFFFFFu) < 0x40860000u) {
+            int k = ExpKernel::evaluate(zh, zl, hi, lo);
+            v.d = hi + lo;
+            v.w[1] += (unsigned)k << 20;
+            return v.d;
+        }
+    }
     unsigned long long ux = MathBits::of(x), uy = MathBits::of(y);
     if (MathBits::isZero(uy) || ux == 0x3FF0000000000000ull) return 1.0;
     if (MathBits::isNaN(ux)) return x;

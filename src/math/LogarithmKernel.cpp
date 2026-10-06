@@ -1,5 +1,6 @@
-// Spec: ISO C 7.12.6.7 log - the table-driven reduction of Logarithm.h; the terms of ln(1 + u)
-// summed in a double-double, u^2/2 exactly, the rest in double.
+// Spec: ISO C 7.12.6.7 log - the table-driven reduction of Logarithm.h. m r_j - 1 is exact as
+// (mh r_j - 1) + ml r_j with mh m's top 45 bits; e ln2Hi - ln r_j is exact (multiples of 2^-42);
+// u^2 by Dekker's product, so u - u^2/2 is a double-double, the rest of ln(1 + u) in double.
 
 #include "Logarithm.h"
 #include "MathBits.h"
@@ -7,36 +8,42 @@
 
 namespace rts6x {
 
-DoubleDouble Logarithm::kernel(double x)
+double Logarithm::kernel(double x, double &lo)
 {
-    unsigned long long u = MathBits::of(x);
-    int e;
-    if (MathBits::biased(u) == 0) {
-        UnpackedFloat a(u, FloatFormat::binary64());
+    union { double d; unsigned w[2]; } v;
+    v.d = x;
+    int e = (int)(v.w[1] >> 20) - 1023;
+    if (e == -1023) {
+        // Subnormal: its significand normalised, the exponent lowered to match.
+        UnpackedFloat a(MathBits::of(x), FloatFormat::binary64());
         e = a.exponent() + 52;
-        u = a.significand();
-    } else {
-        e = MathBits::biased(u) - 1023;
+        v.d = MathBits::from(a.significand());
     }
-    u = (u & MathBits::fractionMask()) | (1023ull << 52);
-    // j: the fraction rounded to 1/128; at 128, m/2 is taken against r_0 = 1.
-    int j = (int)((u >> 45) & 0x7F) + (int)((u >> 44) & 1);
-    double m = MathBits::from(u);
-    if (j == 128) { m *= 0.5; e += 1; j = 0; }
-    DoubleDouble p = DoubleDouble::product(m, reciprocal_[j]);
-    // p.hi lies in [0.99, 1.01], so p.hi - 1 is exact.
-    DoubleDouble w = DoubleDouble::sum(p.hi - 1.0, p.lo);
-    double v = w.hi;
-    DoubleDouble sq = DoubleDouble::product(v, v);
-    double tail = v * v * v * (0.3333333333333333 + v * (-0.25 + v * (0.2 + v * (-0.16666666666666666
-                  + v * (0.14285714285714285 + v * (-0.125 + v * 0.1111111111111111))))));
+    v.w[1] = (v.w[1] & 0x000FFFFFu) | 0x3FF00000u;
+    // j: m's fraction rounded to 1/128; at 128, m/2 is taken against r_0 = 1.
+    int j = (int)(v.w[1] >> 13 & 0x7F) + (int)(v.w[1] >> 12 & 1);
+    double m = v.d;
+    if (j == 128) { m = 0.5 * m; e = e + 1; j = 0; v.d = m; }
+    v.w[0] &= 0xFFFFFF00u;
+    // m = v.d + (m - v.d): 45 bits times r_j's 8 is exact, and so is the rest's product.
+    double u = (v.d * reciprocal_[j] - 1.0) + (m - v.d) * reciprocal_[j];
     double ed = (double)e;
-    DoubleDouble s = DoubleDouble::sum(ed * MathConstants::ln2Hi(), logHi_[j]);
-    DoubleDouble t = DoubleDouble::sum(s.hi, v);
-    DoubleDouble h = DoubleDouble::sum(t.hi, -0.5 * sq.hi);
-    double lo = s.lo + t.lo + h.lo + ed * MathConstants::ln2Lo() + logLo_[j] + w.lo
-                + (tail - 0.5 * sq.lo - v * w.lo);
-    return DoubleDouble::quickSum(h.hi, lo);
+    m = ed * MathConstants::ln2Hi + logHi_[j];
+    // u = v.d + (u - v.d), v.d of 26 bits by Veltkamp; u^2 = sq + the exact rest.
+    v.d = u * 134217729.0;
+    v.d = v.d - (v.d - u);
+    double sq = u * u;
+    lo = ((v.d * v.d - sq) + 2.0 * v.d * (u - v.d)) + (u - v.d) * (u - v.d);
+    // m + u by Knuth's two-sum, then - sq/2 by Dekker's fast one (|m + u| > sq).
+    double s = m + u;
+    double bv = s - m;
+    lo = ((m - (s - bv)) + (u - bv)) + (ed * MathConstants::ln2Lo + logLo_[j]
+         + (u * sq * ((0.3333333333333333 + u * -0.25) + sq * (0.2 + u * -0.16666666666666666)
+            + sq * sq * ((0.14285714285714285 + u * -0.125) + sq * (0.1111111111111111 + u * -0.1)))
+            - 0.5 * lo));
+    m = s - 0.5 * sq;
+    lo = ((s - m) - 0.5 * sq) + lo;
+    return m;
 }
 
 }  // namespace rts6x
