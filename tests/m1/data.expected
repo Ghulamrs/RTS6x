@@ -1,0 +1,5 @@
+constructed 1
+constructed 2
+sum 719, nonzero 0, text [initialised text], fraction 2.5, counter 42, ids 1 2
+destroyed 2
+destroyed 1

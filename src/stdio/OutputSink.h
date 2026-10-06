@@ -18,6 +18,8 @@ public:
     void put(char c);
     void put(const char *s, size_t n);
     void repeat(char c, size_t n);
+    // A string up to its NUL.
+    void put(const char *s) { while (*s) put(*s++); }
     // Staged bytes written or the NUL stored; the count, or -1 if the host refused a write.
     int finish();
 

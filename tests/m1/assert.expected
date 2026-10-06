@@ -1,0 +1,2 @@
+before
+Assertion failed, (two == 3), file tests/m1/assert.c, line 9

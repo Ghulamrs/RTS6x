@@ -1,14 +1,29 @@
 ©2026 G. R. Akhtar - RTS6x 1.0, a TMS320C6747 run-time support library
 Release seal, version 1.0, sealed 06-10-2026
 Written by tools/seal; check it with `tools/seal check`.
-CRC32  size  file - 26 files, seal 0CA0A2C4
+CRC32  size  file - 46 files, seal 2BE5BF23
 ------------------------------------------------------------------
+4659FA0F      1325  src/boot/Decompressor.cpp
+4FA37116      1393  src/boot/Decompressor.h
+A2789C65      1677  src/boot/Startup.cpp
+F6B4D38C      1524  src/boot/Startup.h
+8D644F76       284  src/boot/__TI_decompress_none.cpp
+53A08E3E       287  src/boot/__TI_decompress_rle24.cpp
+958C983C       272  src/boot/__TI_zero_init.cpp
+CAD4AD1C      1197  src/boot/boot.s
 652BD312       222  src/boot/version.s
 F31F0678       390  src/eh-none/pr3.s
+DC89A967      1179  src/exit/Termination.cpp
+5F8366E8      1197  src/exit/Termination.h
+B1E470E3       393  src/exit/__cxa_atexit.cpp
+B6FB341F       185  src/exit/abort.cpp
+37ECDC78       214  src/exit/atexit.cpp
+5F7E57BC       199  src/exit/exit.cpp
 3F66A9F6      1176  src/host/CioChannel.cpp
 8577577A      1630  src/host/CioChannel.h
 A7A59E97       430  src/host/cio.s
 1603B27F       909  src/internal/rts6x.h
+B15095A6       386  src/misc/__c6xabi_abort_msg.cpp
 B9567598      3517  src/stdio/DecimalDigits.cpp
 AB786E04      1649  src/stdio/DecimalDigits.h
 72B5E375      2033  src/stdio/FormatCharacter.cpp
@@ -22,10 +37,15 @@ C64EEF5D      2335  src/stdio/Formatter.h
 34A564B3      1206  src/stdio/IntegerDigits.cpp
 2E7920A6       736  src/stdio/IntegerDigits.h
 372EB9D3      1237  src/stdio/OutputSink.cpp
-645D7DDB      1089  src/stdio/OutputSink.h
+F46EDB70      1174  src/stdio/OutputSink.h
+FB0A5DDA       277  src/stdio/fflush.cpp
 5A0E3FE0       404  src/stdio/fprintf.cpp
+17439AA6       314  src/stdio/fputc.cpp
+9C200F17       292  src/stdio/fputs.cpp
 CCEF1315       405  src/stdio/ftable.cpp
 4B60AF96       373  src/stdio/printf.cpp
+36B6767E       141  src/stdio/putchar.cpp
+DDCF6BE0       286  src/stdio/puts.cpp
 D979D25A       412  src/stdio/sprintf.cpp
 45409F74       482  src/stdio/wprintf.cpp
 EC607F8B     10719  tools/ar6x/ar6x.cpp
