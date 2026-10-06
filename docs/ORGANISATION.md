@@ -151,6 +151,7 @@ then `rts6x.lib`), so the switch is one line in each.
 | **M5** | eh: unwinder, PR3 and PR2 (then PR0/1/4), `__cxa_*`, terminate | both suites pass whole at -O0/-O1/-O2/-Os on rts6x.lib; `RTSLIB` default switched |
 | **M6** | the declared-only symbols; the referee run on TI's simulator; speed work (D8) | every header declaration defined; referee agrees |
 | **M7** | integration: RIDE links rts6x.lib instead of TI's library and ships it; release scripts clone RTS6x; `washout.py`, MASTER.SEAL | an installed RIDE builds and runs a C6747 program with nothing of TI's on the link line |
+| **M8** | a Release and a Debug build of every runtime the C6000 links, as the host targets already have: `rts6x.lib`/`printf6x.lib` at -O2 and `rts6xd.lib`/`printf6xd.lib` at -O0 with `_DEBUG`; Shalimar's `shmrt-tms6747` at -O2 and `shmrt-tms6747-debug` at -O0 with `SHM_DEBUG`; RIDE links the pair the configuration names, and the installers ship both | on the Windows PC and the Linux box, from fresh clones: both pairs build, RTS6x's tests pass against each, and an installed RIDE links a C++ and a Shalimar program in Release with the -O2 pair and in Debug with the -O0 pair, each running on vm6747sim |
 
 ## 7. What changes in the other repositories, and when
 
@@ -160,4 +161,6 @@ then `rts6x.lib`), so the switch is one line in each.
 | C++Optimize | the `.ref .S1`/`.S2` fix (ANALYSIS 6.1) | any time |
 | RIDE-4.7 | link with `rts6x.lib` from the package instead of the CCS compiler directory; ship it | M7 |
 | RIDE-4.7 packaging | release scripts clone and build RTS6x; `washout.py`; MASTER.SEAL | M7 |
+| RIDE-4.7 | the configuration chooses `rts6x.lib` or `rts6xd.lib`, `shmrt-tms6747` or `shmrt-tms6747-debug`; the workspace, RIDE.sln and the installers carry both | M8 |
+| VM6747/Compiler-Si | the C6000 Shalimar runtime built twice, -O2 and -O0 with `SHM_DEBUG` | M8 |
 | LNK6x | none expected (D7); a fix only if a test needs one | - |
