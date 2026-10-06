@@ -1,0 +1,62 @@
+#!/bin/sh
+# Spec: none - M6's referee (docs/ORGANISATION.md 5): the images both tms6747 suites link against
+# rts6x.lib run on TI's own CCS 5.5 C6747 cycle-accurate simulator, on the Windows box, and their
+# output and exit status are compared with vm6747sim's, which the suites have already held to expected.
+#   tools/referee              both suites, rebuilt at -O2      tools/referee cpp11|c90    one of them
+#   KEEP=1 tools/referee       the suites' images as they are, not rebuilt; ONLY=word, the images named so
+set -u
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+CPP=$(cd "$ROOT/../C++Optimize" && pwd); C90=$(cd "$ROOT/../VM6747/Compiler-Ci" && pwd)
+VMSIM=${VMSIM:-$ROOT/../VM6747-sim/vm6747.exe}
+WINDOWS=${CXX1_WINDOWS:-windows}; REMOTE='C:\cxx1\referee'
+WHICH=${1:-both}; T0=$(date +%s)
+WORK=$(mktemp -d); trap 'rm -rf "$WORK"' EXIT
+mkdir -p "$WORK/ref" "$WORK/vm"
+for f in runca.js par-one.cmd c6747ca-windows.ccxml; do cp "$CPP/tools/c6747/$f" "$WORK/ref/"; done
+cp "$ROOT/tools/referee.cmd" "$WORK/ref/"
+
+# The suites' images, rebuilt at -O2 against this checkout's library unless KEEP says otherwise.
+if [ "${KEEP:-0}" != 1 ]; then
+    [ "$WHICH" = c90 ] || (cd "$CPP" && CXX1_FLAGS=-O2 TIRTS="$ROOT/build" RTSLIB=rts6x.lib sh tests/tms6747.sh | tail -2)
+    if [ "$WHICH" != cpp11 ]; then
+        printf '#!/bin/sh\nexec %s -O2 "$@"\n' "$C90/c90.exe" > "$WORK/c90-O2"; chmod +x "$WORK/c90-O2"
+        (cd "$C90" && CC1="$WORK/c90-O2" TIRTS="$ROOT/build" RTSLIB=rts6x.lib sh tests/tms6747.sh | tail -2)
+    fi
+fi
+take() {   # suite prefix, image: copied with vm6747sim's own output and status beside it
+    id=$1.$(basename "$2" .ti.out)
+    case "$id" in *"${ONLY:-}"*) ;; *) return ;; esac
+    "$VMSIM" --dis "$2" 2>/dev/null | grep -q __rts6x_halt || { echo "referee: $2 is not linked with rts6x.lib"; return; }
+    cp "$2" "$WORK/ref/$id.out"
+    ( ulimit -t 60 2>/dev/null; "$VMSIM" --run "$2" ) > "$WORK/vm/$id.out" 2>&1 < /dev/null; echo $? > "$WORK/vm/$id.rc"
+}
+[ "$WHICH" = c90 ] || for i in "$CPP"/tests/out-tms6747/*.ti.out; do take p "$i"; done
+[ "$WHICH" = cpp11 ] || for i in "$C90"/tests/out-tms6747/*.ti.out; do take c "$i"; done
+N=$(ls "$WORK/ref"/*.out | wc -l | tr -d ' ')
+echo "referee: $N images, shipping to $WINDOWS for TI's C6747 simulator"
+
+COPYFILE_DISABLE=1 tar -C "$WORK" --no-xattrs -czf "$WORK/ref.tgz" ref || exit 1
+scp -q -o BatchMode=yes "$WORK/ref.tgz" "$WINDOWS:C:/cxx1/ref.tgz" || { echo "referee: cannot ship to $WINDOWS"; exit 1; }
+ssh -o BatchMode=yes "$WINDOWS" "rmdir /s /q $REMOTE 2>nul & mkdir $REMOTE && tar -C $REMOTE --strip-components=1 -xzf C:\\cxx1\\ref.tgz && del C:\\cxx1\\ref.tgz" >/dev/null 2>&1 || { echo "referee: cannot unpack on $WINDOWS"; exit 1; }
+ssh -o BatchMode=yes "$WINDOWS" "$REMOTE\\referee.cmd" > "$WORK/windows.log" 2>&1
+mkdir -p "$WORK/back"
+scp -q -o BatchMode=yes "$WINDOWS:C:/cxx1/referee/out/*" "$WORK/back/" 2>/dev/null
+[ -f "$WORK/back/referee.done" ] || { echo "referee: the Windows worker did not finish"; tr -d '\r' < "$WORK/windows.log" | tail -8; exit 1; }
+
+# The verdict: TI's output against vm6747sim's, and the status A4 holds at C$$EXIT against vm6747sim's.
+field() { tr -d '\r' < "$1" | tr ' ' '\n' | sed -n "s/^$2=//p" | head -1; }
+agree=0; differ=0; norun=0
+for o in "$WORK/ref"/*.out; do
+    id=$(basename "$o" .out); r="$WORK/back/$id.result"
+    count=$(field "$r" count 2>/dev/null); pc=$(field "$r" pc 2>/dev/null); ex=$(field "$r" exit 2>/dev/null); a4=$(field "$r" a4 2>/dev/null)
+    if [ -z "$count" ]; then echo "NO RUN  $id"; norun=$((norun+1)); continue; fi
+    tr -d '\r' < "$WORK/back/$id.stdout" 2>/dev/null > "$WORK/$id.ti" || : > "$WORK/$id.ti"
+    want=$(cat "$WORK/vm/$id.rc"); got=$(( ${a4:-0} & 255 ))
+    if [ "$pc" = "$ex" ] && [ "$got" = "$want" ] && cmp -s "$WORK/$id.ti" "$WORK/vm/$id.out"; then agree=$((agree+1))
+    else
+        differ=$((differ+1)); echo "DIFFER  $id: TI status $got pc $pc, vm6747sim status $want"
+        diff "$WORK/vm/$id.out" "$WORK/$id.ti" | head -6 | sed 's/^/        /'
+    fi
+done
+echo "referee: $agree agree, $differ differ, $norun did not run - of $N, in $(( $(date +%s) - T0 ))s"
+[ $differ -eq 0 ] && [ $norun -eq 0 ]

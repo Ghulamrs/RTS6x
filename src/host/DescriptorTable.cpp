@@ -3,6 +3,6 @@
 
 namespace rts6x {
 
-int DescriptorModes::modes_[DescriptorModes::Count] = { DescriptorModes::Text, DescriptorModes::Text, DescriptorModes::Text };
+int DescriptorModes::modes_[DescriptorModes::Count] = { Text, Text, Text };
 
 }  // namespace rts6x
