@@ -27,14 +27,12 @@
 set "ASM6X=$(OutDir)asm6x.exe"
 call "$(ProjectDir)build.cmd" || exit /b 1
 if not exist "$(OutDir)lib\rts6x-tms6747" mkdir "$(OutDir)lib\rts6x-tms6747"
-copy /y "$(ProjectDir)build\rts6x.lib" "$(OutDir)lib\rts6x-tms6747\rts6x.lib" || exit /b 1
-copy /y "$(ProjectDir)build\printf6x.lib" "$(OutDir)lib\rts6x-tms6747\printf6x.lib" || exit /b 1</NMakeBuildCommandLine>
+for %%l in (rts6x rts6xd printf6x printf6xd) do copy /y "$(ProjectDir)build\%%l.lib" "$(OutDir)lib\rts6x-tms6747\%%l.lib" || exit /b 1</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set "CPP11=$(OutDir)cpp11.exe"
 set "ASM6X=$(OutDir)asm6x.exe"
 call "$(ProjectDir)build.cmd" || exit /b 1
 if not exist "$(OutDir)lib\rts6x-tms6747" mkdir "$(OutDir)lib\rts6x-tms6747"
-copy /y "$(ProjectDir)build\rts6x.lib" "$(OutDir)lib\rts6x-tms6747\rts6x.lib" || exit /b 1
-copy /y "$(ProjectDir)build\printf6x.lib" "$(OutDir)lib\rts6x-tms6747\printf6x.lib" || exit /b 1</NMakeReBuildCommandLine>
+for %%l in (rts6x rts6xd printf6x printf6xd) do copy /y "$(ProjectDir)build\%%l.lib" "$(OutDir)lib\rts6x-tms6747\%%l.lib" || exit /b 1</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>if exist "$(ProjectDir)build" rmdir /s /q "$(ProjectDir)build"</NMakeCleanCommandLine>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
