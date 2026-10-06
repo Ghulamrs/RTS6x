@@ -2,6 +2,7 @@
 // in the form LNK6x's archive.cpp reads. Our own, so that no host `ar` is in the build.
 // Spec: the SysV ar format (magic, 60-byte headers, `/` index, `//` long names); ELF32 (gABI).
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -122,6 +123,10 @@ int create(const std::string &lib, const std::vector<std::string> &objs)
         }
         ms.push_back(m);
     }
+
+    // Members in byte order of their names, whatever order they came in: every host's shell lists
+    // files its own way, and the same objects must make the same library.
+    std::sort(ms.begin(), ms.end(), [](const Member &x, const Member &y) { return x.name < y.name; });
 
     // The long names, `name/\n` each, for a name past fifteen characters.
     std::string longs;
