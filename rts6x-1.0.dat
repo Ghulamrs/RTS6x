@@ -1,10 +1,33 @@
 ©2026 G. R. Akhtar - RTS6x 1.0, a TMS320C6747 run-time support library
 Release seal, version 1.0, sealed 06-10-2026
 Written by tools/seal; check it with `tools/seal check`.
-CRC32  size  file - 3 files, seal 78EB68E7
+CRC32  size  file - 26 files, seal EB74B8DC
 ------------------------------------------------------------------
 652BD312       222  src/boot/version.s
+F31F0678       390  src/eh-none/pr3.s
+3F66A9F6      1176  src/host/CioChannel.cpp
+8577577A      1630  src/host/CioChannel.h
+A7A59E97       430  src/host/cio.s
 1603B27F       909  src/internal/rts6x.h
-BAE9AFD3      9712  tools/ar6x/ar6x.cpp
+B9567598      3517  src/stdio/DecimalDigits.cpp
+AB786E04      1649  src/stdio/DecimalDigits.h
+72B5E375      2033  src/stdio/FormatCharacter.cpp
+BF23AE07      6062  src/stdio/FormatFloat.cpp
+F1B62C6C      3090  src/stdio/FormatInteger.cpp
+5365D44C      2234  src/stdio/FormatSpec.cpp
+9672C145      1351  src/stdio/FormatSpec.h
+C2669D48       836  src/stdio/FormatText.h
+89AFEB90      2495  src/stdio/Formatter.cpp
+C64EEF5D      2335  src/stdio/Formatter.h
+34A564B3      1206  src/stdio/IntegerDigits.cpp
+2E7920A6       736  src/stdio/IntegerDigits.h
+372EB9D3      1237  src/stdio/OutputSink.cpp
+645D7DDB      1089  src/stdio/OutputSink.h
+5A0E3FE0       404  src/stdio/fprintf.cpp
+CCEF1315       405  src/stdio/ftable.cpp
+4B60AF96       373  src/stdio/printf.cpp
+D979D25A       412  src/stdio/sprintf.cpp
+45409F74       482  src/stdio/wprintf.cpp
+B0AF3643     10420  tools/ar6x/ar6x.cpp
 ------------------------------------------------------------------
 Sealed on 06-10-2026

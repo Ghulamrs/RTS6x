@@ -41,5 +41,22 @@ if "$C90" -arch tms6747 -Isrc/internal -S tests/layout/layout.c -o "$OUT/layout-
 "$VMSIM" --run "$OUT/probe.out" > /dev/null 2>&1; st=$?
 if [ "$st" = 82 ]; then ok "link: lnk6x with rts6x.lib, run on vm6747sim"; else bad "link" "status $st, wanted 82; $(cat "$OUT/probe.log")"; fi
 
+# printf6x.lib alone: the formats test at -O0 and -O2, linked with it and the stand-in entry only,
+# run on vm6747sim, and its output held to the host's for the same calls (formats.expected)
+PRINTFLIB=build/printf6x.lib
+"$ASM6X" tests/link/start.s -o "$OUT/start.obj"
+for level in -O0 -O2; do
+    o="$OUT/formats$level"
+    if "$CPP11" -arch tms6747 -nologo $level -S tests/printf/formats.cpp -o "$o.s" > "$o.log" 2>&1 &&
+       "$ASM6X" "$o.s" -o "$o.obj" >> "$o.log" 2>&1 &&
+       "$LNK6X" -mv6740 --abi=eabi --ram_model tests/link/flat.cmd "$OUT/start.obj" "$o.obj" -l "$PRINTFLIB" -o "$o.out" >> "$o.log" 2>&1; then
+        "$VMSIM" --run --main-status "$o.out" > "$o.txt" 2>&1
+        if diff tests/printf/formats.expected "$o.txt" > "$o.diff"; then ok "printf6x.lib: formats $level, as the host prints them"
+        else bad "printf6x.lib: formats $level" "$(head -12 "$o.diff")"; fi
+    else
+        bad "printf6x.lib: formats $level did not build" "$(tail -3 "$o.log")"
+    fi
+done
+
 echo "run.sh: $pass passed, $fail failed"
 [ "$fail" = 0 ]

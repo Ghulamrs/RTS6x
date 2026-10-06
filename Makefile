@@ -16,11 +16,22 @@ BINDIR ?= build
 AR6X    = $(BINDIR)/ar6x.exe
 LIB     = $(BINDIR)/rts6x.lib
 CPPSRC  = $(shell find src -name '*.cpp' | sort)
-ASMSRC  = $(shell find src -name '*.s' | sort)
+# eh-none/ is printf6x.lib's stand-in for the unwinder, never part of rts6x.lib.
+ASMSRC  = $(shell find src -name '*.s' -not -path 'src/eh-none/*' | sort)
 OBJS    = $(patsubst src/%.cpp,$(OBJDIR)/%.obj,$(CPPSRC)) $(patsubst src/%.s,$(OBJDIR)/%.obj,$(ASMSRC))
 HEADERS = $(shell find src -name '*.h')
 
-all: $(LIB)
+# printf6x.lib: printf, fprintf, sprintf and wprintf, with only what they need under them -
+# the formatter's classes, the FILE table and the host channel.
+PRINTFSRC = src/host/CioChannel.cpp $(wildcard src/stdio/*.cpp)
+PRINTFOBJ = $(patsubst src/%.cpp,$(OBJDIR)/%.obj,$(PRINTFSRC)) $(OBJDIR)/host/cio.obj $(OBJDIR)/eh-none/pr3.obj
+PRINTFLIB = $(BINDIR)/printf6x.lib
+
+all: $(LIB) $(PRINTFLIB)
+
+$(PRINTFLIB): $(AR6X) $(PRINTFOBJ) tools/provenance
+	sh tools/provenance
+	$(AR6X) -r $@ $(PRINTFOBJ)
 
 $(AR6X): tools/ar6x/ar6x.cpp
 	@mkdir -p $(BINDIR)

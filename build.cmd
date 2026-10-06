@@ -36,12 +36,13 @@ for /r src %%f in (*.cpp) do (
     "%ASM6X%" "%OBJDIR%\!REL!%%~nf.s" -o "%OBJDIR%\!REL!%%~nf.obj" || exit /b 1
     set "OBJS=!OBJS! "%OBJDIR%\!REL!%%~nf.obj""
 )
+rem eh-none\ is printf6x.lib's stand-in for the unwinder, kept out of rts6x.lib.
 for /r src %%f in (*.s) do (
     set "REL=%%~dpf"
     set "REL=!REL:%CD%\src\=!"
     if not exist "%OBJDIR%\!REL!" mkdir "%OBJDIR%\!REL!"
     "%ASM6X%" "%%f" -o "%OBJDIR%\!REL!%%~nf.obj" || exit /b 1
-    set "OBJS=!OBJS! "%OBJDIR%\!REL!%%~nf.obj""
+    if /i not "!REL!"=="eh-none\" set "OBJS=!OBJS! "%OBJDIR%\!REL!%%~nf.obj""
 )
 
 rem The provenance check and the tests are shell scripts; Git for Windows carries the shell.
@@ -50,6 +51,11 @@ if not exist "%SH%" (echo build.cmd: no sh at %SH% - the provenance check needs 
 "%SH%" tools/provenance || exit /b 1
 build\ar6x.exe -r build\rts6x.lib %OBJS% || exit /b 1
 echo build.cmd: build\rts6x.lib
+rem printf6x.lib: printf, fprintf, sprintf and wprintf, with only what they need under them.
+set "POBJS="%OBJDIR%\host\CioChannel.obj" "%OBJDIR%\host\cio.obj" "%OBJDIR%\eh-none\pr3.obj""
+for %%f in (src\stdio\*.cpp) do set "POBJS=!POBJS! "%OBJDIR%\stdio\%%~nf.obj""
+build\ar6x.exe -r build\printf6x.lib %POBJS% || exit /b 1
+echo build.cmd: build\printf6x.lib
 
 if /i not "%~1"=="check" exit /b 0
 if "%C90%"=="" set "C90=%RIDEBIN%\c90.exe"

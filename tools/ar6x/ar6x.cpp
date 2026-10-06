@@ -18,6 +18,7 @@ struct Member {
     std::string name;               // the object's file name, without its directory
     std::vector<u8> bytes;
     std::vector<std::string> defs;  // the global and weak symbols it defines
+    std::vector<bool> weak;         // beside each, whether it is weak - an inline function, say
 };
 
 bool readFile(const std::string &path, std::vector<u8> &out)
@@ -38,7 +39,7 @@ u32 le16(const u8 *p) { return p[0] | (p[1] << 8); }
 
 // The symbols an object defines for others: every GLOBAL or WEAK symbol that is not undefined,
 // in symbol-table order. A symbol of type FILE or SECTION is never one of them.
-bool definedSymbols(const std::vector<u8> &d, std::vector<std::string> &out, std::string &why)
+bool definedSymbols(const std::vector<u8> &d, std::vector<std::string> &out, std::vector<bool> &weak, std::string &why)
 {
     if (d.size() < 52 || std::memcmp(&d[0], "\x7f" "ELF", 4) != 0) { why = "not an ELF object"; return false; }
     if (d[4] != 1 || d[5] != 1) { why = "not ELF32 little-endian"; return false; }
@@ -59,6 +60,7 @@ bool definedSymbols(const std::vector<u8> &d, std::vector<std::string> &out, std
             if (name >= strsize) { why = "a symbol name past its table"; return false; }
             const char *p = reinterpret_cast<const char *>(&d[stroff + name]);
             out.push_back(std::string(p, strnlen(p, strsize - name)));
+            weak.push_back(bind == 2);
         }
     }
     return true;
@@ -94,24 +96,29 @@ void be32(std::vector<u8> &v, size_t at, u32 x)
 int create(const std::string &lib, const std::vector<std::string> &objs)
 {
     std::vector<Member> ms;
-    std::map<std::string, std::string> owner;
+    std::map<std::string, std::string> owner;   // the member the index names for each symbol
+    std::map<std::string, bool> weakOwner;      // whether that member's definition is weak
     for (size_t i = 0; i < objs.size(); i++) {
         Member m;
         size_t slash = objs[i].find_last_of("/\\");
         m.name = slash == std::string::npos ? objs[i] : objs[i].substr(slash + 1);
         std::string why;
         if (!readFile(objs[i], m.bytes)) { std::fprintf(stderr, "ar6x: %s: cannot read\n", objs[i].c_str()); return 1; }
-        if (!definedSymbols(m.bytes, m.defs, why)) { std::fprintf(stderr, "ar6x: %s: %s\n", objs[i].c_str(), why.c_str()); return 1; }
+        if (!definedSymbols(m.bytes, m.defs, m.weak, why)) { std::fprintf(stderr, "ar6x: %s: %s\n", objs[i].c_str(), why.c_str()); return 1; }
         for (size_t k = 0; k < ms.size(); k++)
             if (ms[k].name == m.name) { std::fprintf(stderr, "ar6x: two members named %s\n", m.name.c_str()); return 1; }
-        // A symbol defined by two members would make which one a link takes depend on the order.
+        // Two strong definitions of one name would make a link's choice depend on the order; weak
+        // ones - an inline function in each object that uses it - are one definition, indexed once.
         for (size_t k = 0; k < m.defs.size(); k++) {
             std::map<std::string, std::string>::iterator o = owner.find(m.defs[k]);
-            if (o != owner.end()) {
+            if (o != owner.end() && !m.weak[k] && !weakOwner[m.defs[k]]) {
                 std::fprintf(stderr, "ar6x: %s is defined in %s and in %s\n", m.defs[k].c_str(), o->second.c_str(), m.name.c_str());
                 return 1;
             }
-            owner[m.defs[k]] = m.name;
+            if (o == owner.end() || (weakOwner[m.defs[k]] && !m.weak[k])) {
+                owner[m.defs[k]] = m.name;
+                weakOwner[m.defs[k]] = m.weak[k];
+            }
         }
         ms.push_back(m);
     }
@@ -129,7 +136,8 @@ int create(const std::string &lib, const std::vector<std::string> &objs)
     // layout, so the size is computed first and the offsets filled in last.
     size_t names = 0, count = 0;
     for (size_t i = 0; i < ms.size(); i++)
-        for (size_t k = 0; k < ms[i].defs.size(); k++) { names += ms[i].defs[k].size() + 1; count++; }
+        for (size_t k = 0; k < ms[i].defs.size(); k++)
+            if (owner[ms[i].defs[k]] == ms[i].name) { names += ms[i].defs[k].size() + 1; count++; }
     size_t isize = 4 + 4 * count + names;
     std::vector<u8> out(8);
     std::memcpy(&out[0], "!<arch>\n", 8);
@@ -153,6 +161,7 @@ int create(const std::string &lib, const std::vector<std::string> &objs)
     size_t slot = idx + 4, text = idx + 4 + 4 * count;
     for (size_t i = 0; i < ms.size(); i++)
         for (size_t k = 0; k < ms[i].defs.size(); k++) {
+            if (owner[ms[i].defs[k]] != ms[i].name) continue;
             be32(out, slot, u32(at[i]));
             slot += 4;
             std::memcpy(&out[text], ms[i].defs[k].c_str(), ms[i].defs[k].size() + 1);
