@@ -25,8 +25,8 @@ vm6747sim models it). Division and conversions are software helpers. So:
 - subnormal inputs are taken apart with `UnpackedFloat` (integers); subnormal results are
   built by `MathBits::compose`, which rounds `(hi + lo) 2^k` once from the bits;
 - every kernel works on numbers near 1, so no intermediate is ever subnormal;
-- no kernel divides: `NewtonIteration` gives `1/d` and `1/sqrt(w)` with multiplications
-  only, and a double-double quotient corrects it with the exact remainder.
+- no kernel divides: `NewtonIteration` gives `1/d` and `SquareRoot::inverse` `1/sqrt(w)` with
+  multiplications only, and a double-double quotient corrects it with the exact remainder.
 
 ## The functions
 
@@ -35,12 +35,12 @@ vm6747sim models it). Division and conversions are software helpers. So:
 | `fabs`, `floor`, `ceil`, `trunc`, `round`, `modf`, `frexp` | the bits: fraction cleared, carried into, or the exponent read | `BinaryScale*`, `IntegralPart*` |
 | `ldexp` | the exponent field moved; where the result leaves the normal range, `FloatPacker` rounds once | `BinaryScaleScale.cpp` |
 | `fmod` | integer long division of the significands, 11 bits a step: exact | `RemainderTruncated.cpp` |
-| `sqrt` | integer root `T = floor(sqrt(S 2^52))`, guessed by Newton in double, made exact in integers, rounded up when `S 2^52 - T^2 > T` | `SquareRootRoot.cpp` |
-| `exp` | `e^z = 2^k 2^(j/64) e^r`, `|r| <= ln2/128`, ln2/64 in two parts (the first of 36 bits, so `n ln2/64` is exact); `e^r` by Taylor to `r^7`; the table as double-doubles | `ExpKernel*`, `ExponentialNatural.cpp` |
-| `log`, `log10` | `x = 2^e m`, `m r_j = 1 + u` exactly (Dekker), `ln x = e ln2 - ln r_j + ln(1+u)`, Taylor to `u^9`, summed as a double-double; `log10` times `1/ln10` as a double-double, so a power of ten gives its exponent exactly | `Logarithm*` |
-| `pow` | Annex F's special cases in order, then `e^(y ln x)` with `ln x` a double-double and `y ln x` an exact product (about 2^-66 relative), `ExpKernel`, one rounding | `Power*` |
-| `sin`, `cos`, `tan` | reduction `x = k pi/2 + r`: Cody-Waite with pi/2 in four parts below 2^20 (accepted when `|r| >= 2^-59`, the error being under 2^-129), else Payne-Hanek: x's significand times a 192-bit window of 2/pi's 1216 bits. Then `r = j/64 + t` with sin and cos of j/64 from a table, Taylor for t, the addition formulas; `tan` a double-double quotient | `ArgumentReduction*`, `Trigonometric*` |
-| `atan`, `atan2`, `asin`, `acos` | one kernel: `atan y = atan(j/16) + atan((y - c)/(1 + y c))`, Taylor to `t^11`; above 1, `pi/2 - atan(1/x)`; `asin`, `acos` through `sqrt(1 - x^2)` as a double-double, choosing the quotient below 1; `atan2` scales both arguments near one first | `ArcTangent*` |
+| `sqrt` | a table line for `1/sqrt(m)` (64 bins, `2^-14`) and two Goldschmidt steps give `g` within an ulp; `m - g^2` exactly (Dekker) says which neighbour is the root; within `2^-13` ulp of a half, the integer root `T = floor(sqrt(S 2^52))` settles it exactly | `SquareRoot*`, `SqrtTable.cpp` |
+| `exp` | `e^z = 2^k 2^(j/64) e^a e^c`, `a = z - n ln2Hi/64` exact (36-bit part), `c` the rest; `e^a` by Taylor to `a^7` in Estrin's order; the table as a 26-bit top and a rest, so `top * a`'s head is exact; plain doubles, no call | `ExpKernel*`, `ExponentialNatural.cpp` |
+| `log`, `log10` | `x = 2^e m`, `r_j` = `1/(1 + j/128)` to 8 bits so `u = m r_j - 1` is exact from two products (Tang), `-ln r_j` a multiple of `2^-42` plus a rest so `e ln2Hi - ln r_j` is exact; `ln(1+u)` by Taylor to `u^10`, `u^2` by Dekker; `log10` times `1/ln10` as a double-double, so a power of ten gives its exponent exactly | `Logarithm*` |
+| `pow` | for `x > 0` normal and `y` normal below `2^64` with a normal result, straight to the kernels; otherwise Annex F's special cases in order; `e^(y ln x)` with `ln x` a double-double and `y ln x` an exact product (about 2^-66 relative), `ExpKernel`, one rounding | `Power*` |
+| `sin`, `cos`, `tan` | below `2^13`: one Cody-Waite reduction by pi/256 (`n` the index, `t = x - n pi/256` with pi/256 in four parts), sin and cos of `(n mod 128) pi/256` from a table as 26-bit tops and rests, Taylor for `t`, the addition formulas, in plain doubles. Else, and where a sine's remainder is below `2^-37`: `x = k pi/2 + r` by Cody-Waite with pi/2 in four parts below 2^20 (accepted when `|r| >= 2^-59`), else Payne-Hanek (x's significand times a 192-bit window of 2/pi's 1216 bits), then the double-double kernels on `j/64 + t`; `tan` always this way, a double-double quotient | `ArgumentReduction*`, `Trigonometric*` |
+| `atan`, `atan2`, `asin`, `acos` | one kernel: `atan y = atan(j/16) + atan((y - c)/(1 + y c))`, Taylor to `t^11`; above 1, `pi/2 - atan(1/x)`; `asin`, `acos` through `sqrt(1 - x^2)` as a double-double, choosing the quotient below 1. `atan2` of two normal arguments within `2^60` of each other: both scaled, `n <= d` the magnitudes, `atan(n/d) = atan c + atan((n - c d)/(d + c n))` with the quotient formed once - a seed reciprocal, two Newton steps and the exact remainder - Taylor to `t^13` | `ArcTangent*` |
 | `sinh`, `cosh`, `tanh` | `e^x +- e^-x` from `ExpKernel` as double-doubles; below 1/16 the Taylor series of sinh and cosh; above 38, `e^x/2` alone | `Hyperbolic*` |
 
 Each C function is one tiny `extern "C"` file (`sin.cpp` ...) handing the work to a class.

@@ -11,8 +11,9 @@ namespace rts6x {
 class Trigonometric {
 public:
     // sin, cos, tan: +-0 kept (cos gives 1), an infinity a domain error (EDOM, NaN), a NaN itself.
-    static double sine(double x);
-    static double cosine(double x);
+    // sin x = evaluate(x, 0) and cos x = evaluate(x, 1), inline so that sin() makes one call.
+    static double sine(double x) { return evaluate(x, 0); }
+    static double cosine(double x) { return evaluate(x, 1); }
     static double tangent(double x);
 
     // sin r and cos r as double-doubles, |r| <= pi/4 + 2^-40, error about 2^-64 relative.
@@ -20,9 +21,9 @@ public:
     static DoubleDouble cosineKernel(const DoubleDouble &r);
 
 private:
-    // sin x (shift 0) or cos x (shift 1) for 2^-27 <= |x| < 2^13: one Cody and Waite reduction by
-    // pi/256 and the table kernel, in plain doubles and no call; a tiny remainder goes to slow().
-    static double fast(double x, int shift);
+    // sin x (shift 0) or cos x (shift 1): for 2^-27 <= |x| < 2^13 one Cody and Waite reduction by
+    // pi/256 and the table kernel, in plain doubles and no call; the rest by slow() or by F.9.1.
+    static double evaluate(double x, int shift);
     // The same by ArgumentReduction and the double-double kernels, for every finite x.
     static double slow(double x, int shift);
     // r split as a + t: returns j with a = j/64, t a double-double, |t| <= 1/128; r taken as |r|.

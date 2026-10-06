@@ -1,18 +1,29 @@
-// Spec: ISO C 7.12.4.5 cos, 7.12.4.6 sin - Cody and Waite by pi/256: n = nearest(x 256/pi), t = x
-// - n p1 - n p2 - n p3 - n p4 (33-bit parts, n < 2^20, so n p1..p3 exact); with a = (n mod 128)
-// pi/256, f(a + t) = f(a) cos u + g(a) sin u for (f, g) = (sin, cos), u = t, or (cos, sin), u = -t.
+// Spec: ISO C 7.12.4.5 cos, 7.12.4.6 sin, F.9.1.5-6 - Cody and Waite by pi/256: n = nearest(x 256/pi),
+// t = x - n (p1 + p2 + p3 + p4) (33-bit parts, n < 2^20, n p1..p3 exact); a = (n mod 128) pi/256,
+// f(a + t) = f(a) cos u + g(a) sin u for (f, g) = (sin, cos), u = t, or (cos, sin), u = -t.
 
 #include "Trigonometric.h"
+#include "MathBits.h"
 #include "MathConstants.h"
+#include "MathError.h"
 
 namespace rts6x {
 
 // Few named doubles and long expressions: cpp11 keeps four doubles in saved registers and the
 // rest in its frame, while an expression's temporaries stay in registers.
-double Trigonometric::fast(double x, int shift)
+double Trigonometric::evaluate(double x, int shift)
 {
     union { double d; unsigned w[2]; } v;
     v.d = x;
+    // 2^-27 <= |x| < 2^13 on the high word alone; else the special values, a tiny x (sin x rounds
+    // to x and cos x to 1 below 2^-27) and the double-double way for a large one.
+    if ((v.w[1] & 0x7FFFFFFFu) - 0x3E400000u >= 0x02800000u) {
+        unsigned long long u = MathBits::of(x);
+        if (MathBits::isNaN(u)) return x;
+        if (MathBits::isInfinite(u)) return MathError::domain();
+        if (MathBits::below(x, -27)) return shift ? 1.0 : x;
+        return slow(x, shift);
+    }
     unsigned negative = shift ? 0u : v.w[1] >> 31;
     v.w[1] &= 0x7FFFFFFFu;
     double t = v.d;
