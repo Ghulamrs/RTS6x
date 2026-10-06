@@ -232,6 +232,24 @@ int list(const std::string &lib)
     return 0;
 }
 
+// An argument @list stands for the objects named in that file, one a line - cmd's line is 8191.
+std::vector<std::string> expand(char **first, char **last)
+{
+    std::vector<std::string> out;
+    for (; first != last; ++first) {
+        if ((*first)[0] != '@') { out.push_back(*first); continue; }
+        std::vector<u8> text;
+        if (!readFile(*first + 1, text)) { std::fprintf(stderr, "ar6x: cannot read %s\n", *first + 1); std::exit(1); }
+        std::string line;
+        for (size_t i = 0; i <= text.size(); i++) {
+            char c = i < text.size() ? char(text[i]) : '\n';
+            if (c == '\n' || c == '\r') { if (!line.empty()) out.push_back(line); line.clear(); }
+            else if (c != '"') line += c;
+        }
+    }
+    return out;
+}
+
 } // namespace
 
 int main(int argc, char **argv)
@@ -242,8 +260,8 @@ int main(int argc, char **argv)
     }
     if (argc == 3 && std::strcmp(argv[1], "-t") == 0) return list(argv[2]);
     if (argc >= 3 && std::strcmp(argv[1], "-r") == 0)
-        return create(argv[2], std::vector<std::string>(argv + 3, argv + argc));
-    std::fprintf(stderr, "usage: ar6x -r library.lib object.obj ...   (make the library from these objects)\n"
+        return create(argv[2], expand(argv + 3, argv + argc));
+    std::fprintf(stderr, "usage: ar6x -r library.lib object.obj ...   (make the library from these objects, @file for a list)\n"
                          "       ar6x -t library.lib                  (list its members and its index)\n");
     return 2;
 }

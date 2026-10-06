@@ -27,14 +27,14 @@ if not "%VSCMD_ARG_TGT_ARCH%"=="x64" (
 )
 cl /nologo /std:c++14 /O2 /W4 /WX /EHsc /D_CRT_SECURE_NO_WARNINGS /Fo"%OBJDIR%\\" /Febuild\ar6x.exe tools\ar6x\ar6x.cpp >nul || (echo build.cmd: ar6x did not build & exit /b 1)
 
-set "OBJS="
+if exist build\rts6x.objs del build\rts6x.objs
 for /r src %%f in (*.cpp) do (
     set "REL=%%~dpf"
     set "REL=!REL:%CD%\src\=!"
     if not exist "%OBJDIR%\!REL!" mkdir "%OBJDIR%\!REL!"
     "%CPP11%" -arch tms6747 -nologo -O2 -Isrc\internal -S "%%f" -o "%OBJDIR%\!REL!%%~nf.s" >nul || (echo build.cmd: cpp11 refused %%f & exit /b 1)
     "%ASM6X%" "%OBJDIR%\!REL!%%~nf.s" -o "%OBJDIR%\!REL!%%~nf.obj" || exit /b 1
-    set "OBJS=!OBJS! "%OBJDIR%\!REL!%%~nf.obj""
+    echo %OBJDIR%\!REL!%%~nf.obj>>build\rts6x.objs
 )
 rem eh-none\ is the stand-in for the unwinder, in printf6x.lib alone; rts6x.lib has the real one, eh\.
 for /r src %%f in (*.s) do (
@@ -42,14 +42,14 @@ for /r src %%f in (*.s) do (
     set "REL=!REL:%CD%\src\=!"
     if not exist "%OBJDIR%\!REL!" mkdir "%OBJDIR%\!REL!"
     "%ASM6X%" "%%f" -o "%OBJDIR%\!REL!%%~nf.obj" || exit /b 1
-    if /i not "!REL!"=="eh-none\" set "OBJS=!OBJS! "%OBJDIR%\!REL!%%~nf.obj""
+    if /i not "!REL!"=="eh-none\" echo %OBJDIR%\!REL!%%~nf.obj>>build\rts6x.objs
 )
 
 rem The provenance check and the tests are shell scripts; Git for Windows carries the shell.
 set "SH=%ProgramFiles%\Git\bin\sh.exe"
 if not exist "%SH%" (echo build.cmd: no sh at %SH% - the provenance check needs one & exit /b 1)
 "%SH%" tools/provenance || exit /b 1
-build\ar6x.exe -r build\rts6x.lib %OBJS% || exit /b 1
+build\ar6x.exe -r build\rts6x.lib @build\rts6x.objs || exit /b 1
 echo build.cmd: build\rts6x.lib
 rem printf6x.lib: printf, fprintf, sprintf and wprintf - printf6x.members lists them, as for make.
 set "POBJS="
