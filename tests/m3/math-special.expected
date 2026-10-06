@@ -1,0 +1,167 @@
+sqrt(nz)               -0 errno 0
+sqrt(inf)              inf errno 0
+sqrt(-1.0)             nan errno EDOM
+sqrt(nan)              nan errno 0
+sqrt(tiny)             2.2227587494850775e-162 errno 0
+sqrt(2.0)              1.4142135623730951 errno 0
+sqrt(1e300)            9.9999999999999998e+149 errno 0
+exp(pz)                1 errno 0
+exp(nz)                1 errno 0
+exp(-inf)              0 errno 0
+exp(inf)               inf errno 0
+exp(710.0)             inf errno ERANGE
+exp(-746.0)            0 errno ERANGE
+exp(1.0)               2.7182818284590451 errno 0
+exp(nan)               nan errno 0
+exp(709.5)             1.3549863193146328e+308 errno 0
+exp(-740.0)            4.1995579896505956e-322 errno ERANGE
+exp(-1e-300)           1 errno 0
+log(pz)                -inf errno ERANGE
+log(nz)                -inf errno ERANGE
+log(-1.0)              nan errno EDOM
+log(1.0)               0 errno 0
+log(inf)               inf errno 0
+log(nan)               nan errno 0
+log(tiny)              -744.44007192138122 errno 0
+log(-inf)              nan errno EDOM
+log10(pz)              -inf errno ERANGE
+log10(-2.0)            nan errno EDOM
+log10(1.0)             0 errno 0
+log10(10.0)            1 errno 0
+log10(1000.0)          3 errno 0
+log10(1e-300)          -300 errno 0
+log10(inf)             inf errno 0
+log10(1e22)            22 errno 0
+pow(nan, pz)           1 errno 0
+pow(1.0, nan)          1 errno 0
+pow(nan, 1.0)          nan errno 0
+pow(2.0, nan)          nan errno 0
+pow(pz, -3.0)          inf errno ERANGE
+pow(nz, -3.0)          -inf errno ERANGE
+pow(nz, -2.0)          inf errno ERANGE
+pow(nz, -0.5)          inf errno ERANGE
+pow(nz, 3.0)           -0 errno 0
+pow(nz, 2.0)           0 errno 0
+pow(nz, 0.5)           0 errno 0
+pow(-1.0, inf)         1 errno 0
+pow(-1.0, -inf)        1 errno 0
+pow(0.5, -inf)         inf errno 0
+pow(2.0, -inf)         0 errno 0
+pow(0.5, inf)          0 errno 0
+pow(2.0, inf)          inf errno 0
+pow(-inf, -3.0)        -0 errno 0
+pow(-inf, -2.0)        0 errno 0
+pow(-inf, 3.0)         -inf errno 0
+pow(-inf, 2.5)         inf errno 0
+pow(inf, -1.0)         0 errno 0
+pow(inf, 0.5)          inf errno 0
+pow(-8.0, 1.0 / 3.0)   nan errno EDOM
+pow(-2.0, 3.0)         -8 errno 0
+pow(-2.0, 1e300)       inf errno ERANGE
+pow(10.0, 309.0)       inf errno ERANGE
+pow(10.0, -400.0)      0 errno ERANGE
+pow(-10.0, 309.0)      -inf errno ERANGE
+pow(2.0, 0.5)          1.4142135623730951 errno 0
+pow(2.0, 1023.0)       8.9884656743115795e+307 errno 0
+pow(2.0, -1074.0)      4.9406564584124654e-324 errno ERANGE
+pow(10.0, 22.0)        1e+22 errno 0
+pow(1.0000000000000002, 1e18) 2.7086111089766717e+96 errno 0
+pow(0.25, -0.5)        2 errno 0
+sin(nz)                -0 errno 0
+sin(inf)               nan errno EDOM
+sin(nan)               nan errno 0
+sin(1e22)              -0.85220084976718879 errno 0
+sin(hard)              1 errno 0
+cos(nz)                1 errno 0
+cos(-inf)              nan errno EDOM
+cos(1e22)              0.52321478539513899 errno 0
+cos(hard)              -4.6871659242546277e-19 errno 0
+tan(nz)                -0 errno 0
+tan(inf)               nan errno EDOM
+tan(1e22)              -1.6287782256068988 errno 0
+tan(1.5707963267948966) 16331239353195370 errno 0
+asin(nz)               -0 errno 0
+asin(1.0)              1.5707963267948966 errno 0
+asin(-1.0)             -1.5707963267948966 errno 0
+asin(1.5)              nan errno EDOM
+acos(1.0)              0 errno 0
+acos(-1.0)             3.1415926535897931 errno 0
+acos(pz)               1.5707963267948966 errno 0
+acos(-2.0)             nan errno EDOM
+atan(nz)               -0 errno 0
+atan(inf)              1.5707963267948966 errno 0
+atan(-inf)             -1.5707963267948966 errno 0
+atan(nan)              nan errno 0
+atan(1.0)              0.78539816339744828 errno 0
+atan2(pz, -1.0)        3.1415926535897931 errno 0
+atan2(nz, -1.0)        -3.1415926535897931 errno 0
+atan2(pz, 1.0)         0 errno 0
+atan2(nz, 1.0)         -0 errno 0
+atan2(pz, nz)          3.1415926535897931 errno 0
+atan2(nz, nz)          -3.1415926535897931 errno 0
+atan2(pz, pz)          0 errno 0
+atan2(nz, pz)          -0 errno 0
+atan2(1.0, pz)         1.5707963267948966 errno 0
+atan2(-1.0, nz)        -1.5707963267948966 errno 0
+atan2(inf, 1.0)        1.5707963267948966 errno 0
+atan2(-inf, 1.0)       -1.5707963267948966 errno 0
+atan2(inf, -inf)       2.3561944901923448 errno 0
+atan2(-inf, inf)       -0.78539816339744828 errno 0
+atan2(1.0, -inf)       3.1415926535897931 errno 0
+atan2(-1.0, inf)       -0 errno 0
+atan2(nan, 1.0)        nan errno 0
+atan2(tiny, -1.0)      3.1415926535897931 errno 0
+atan2(1e-300, 1e300)   0 errno ERANGE
+sinh(nz)               -0 errno 0
+sinh(-inf)             -inf errno 0
+sinh(711.0)            inf errno ERANGE
+sinh(-712.0)           -inf errno ERANGE
+cosh(nz)               1 errno 0
+cosh(-inf)             inf errno 0
+cosh(-710.0)           1.1169973830808555e+308 errno 0
+cosh(712.0)            inf errno ERANGE
+tanh(nz)               -0 errno 0
+tanh(inf)              1 errno 0
+tanh(-inf)             -1 errno 0
+tanh(22.0)             1 errno 0
+tanh(nan)              nan errno 0
+fmod(pz, 3.0)          0 errno 0
+fmod(nz, 3.0)          -0 errno 0
+fmod(5.0, pz)          nan errno EDOM
+fmod(inf, 3.0)         nan errno EDOM
+fmod(5.0, inf)         5 errno 0
+fmod(-7.0, 3.0)        -1 errno 0
+fmod(7.0, -3.0)        1 errno 0
+fmod(nan, 1.0)         nan errno 0
+fmod(1e300, tiny)      0 errno 0
+fmod(-6.0, 3.0)        -0 errno 0
+fmod(5.5, 1.25)        0.5 errno 0
+floor(nz)              -0 errno 0
+floor(-0.5)            -1 errno 0
+floor(-tiny)           -1 errno 0
+floor(inf)             inf errno 0
+floor(-2.5)            -3 errno 0
+ceil(nz)               -0 errno 0
+ceil(-0.5)             -0 errno 0
+ceil(tiny)             1 errno 0
+ceil(-inf)             -inf errno 0
+ceil(2.5)              3 errno 0
+fabs(nz)               0 errno 0
+fabs(-inf)             inf errno 0
+fabs(-tiny)            4.9406564584124654e-324 errno 0
+ldexp(1.0, 1024)       inf errno ERANGE
+ldexp(1.0, -1075)      0 errno ERANGE
+ldexp(1.0, -1074)      4.9406564584124654e-324 errno 0
+ldexp(3.0, -1075)      9.8813129168249309e-324 errno 0
+ldexp(nz, 5)           -0 errno 0
+ldexp(inf, -5)         inf errno 0
+ldexp(tiny, 1074)      1 errno 0
+frexp(tiny)            0.5 -1073
+frexp(-1024)           -0.5 11
+frexp(-0)              -0 errno 0
+modf(-3.5)             -0.5 -3
+modf(-4) fraction      -0 errno 0
+modf(-inf) fraction    -0 errno 0
+modf(-inf) whole       -inf errno 0
+modf(nan) whole        nan errno 0
+modf(-0) whole         -0 errno 0
