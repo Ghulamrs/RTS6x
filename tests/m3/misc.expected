@@ -1,0 +1,8 @@
+setlocale C C C 1
+lconv [.] [] 1 1
+signal 1
+raise 0, seen 2
+reset 0
+ignored 0
+getenv 1
+strerror 1

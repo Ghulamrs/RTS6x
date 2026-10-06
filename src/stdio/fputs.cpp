@@ -2,10 +2,12 @@
 
 #include <stdio.h>
 #include "OutputSink.h"
+#include "Stream.h"
 
 extern "C" int fputs(const char *s, FILE *stream)
 {
-    rts6x::OutputSink out(stream->fd);
+    rts6x::Stream to(stream);
+    rts6x::OutputSink out(to.writeDescriptor());
     out.put(s);
-    return out.finish() < 0 ? EOF : 0;
+    return to.wrote(out.finish()) < 0 ? EOF : 0;
 }

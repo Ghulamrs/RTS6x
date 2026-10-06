@@ -2,10 +2,10 @@
 // The table of FILE, with the three standard streams first on the host's descriptors 0, 1 and 2.
 // Data alone - a translation unit with no function, which cpp11 takes since 2026-10-06.
 
-#include <stdio.h>
+#include "Stream.h"
 
-FILE _ftable[20] = {
-    { 0, 0, 0, 0, 0, 0 },
-    { 1, 0, 0, 0, 0, 0 },
-    { 2, 0, 0, 0, 0, 0 },
+FILE _ftable[RTS6X_FTABLE_COUNT] = {
+    { 0, 0, 0, 0, 0, rts6x::Stream::Open | rts6x::Stream::Readable },
+    { 1, 0, 0, 0, 0, rts6x::Stream::Open | rts6x::Stream::Writable },
+    { 2, 0, 0, 0, 0, rts6x::Stream::Open | rts6x::Stream::Writable },
 };

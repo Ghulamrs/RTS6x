@@ -60,8 +60,9 @@ done
 
 # Whole programs on rts6x.lib alone - its own _c_int00, .cinit, constructors, exit - each built by
 # its compiler (c90 for .c, cpp11 for .cpp) at -O0 and -O2, linked under both of lnk6x's models, run
-# on vm6747sim; output and status (<name>.status) held to the host's. <name>.with: more to link in.
-for src in tests/m1/*.c tests/m1/*.cpp tests/m2/*.c tests/m2/*.cpp tests/helpers/*.c tests/helpers/*.cpp; do
+# on vm6747sim; output and status (<name>.status) held to the host's. <name>.with: more to link in;
+# <name>.input: what standard input reads.
+for src in tests/m1/*.c tests/m1/*.cpp tests/m2/*.c tests/m2/*.cpp tests/m3/*.c tests/m3/*.cpp tests/helpers/*.c tests/helpers/*.cpp; do
     [ -f "$src" ] || continue
     dir=$(dirname "$src")
     name=$(basename "$src"); name=${name%.*}
@@ -81,7 +82,9 @@ for src in tests/m1/*.c tests/m1/*.cpp tests/m2/*.c tests/m2/*.cpp tests/helpers
             if ! "$LNK6X" -mv6740 --abi=eabi --${model}_model tests/link/flat.cmd "$o.obj" $extra -l "$LIB" -o "$o.$model.out" >> "$o.log" 2>&1; then
                 bad "$(basename "$dir") $name $level --${model}_model did not link" "$(tail -3 "$o.log")"; continue
             fi
-            "$VMSIM" --run "$o.$model.out" > "$o.$model.txt" 2>&1; st=$?
+            input=/dev/null
+            [ -f "$dir/$name.input" ] && input="$dir/$name.input"
+            "$VMSIM" --run "$o.$model.out" < "$input" > "$o.$model.txt" 2>&1; st=$?
             if [ "$st" = "$want" ] && diff -q "$dir/$name.expected" "$o.$model.txt" > /dev/null; then
                 ok "$(basename "$dir") $name $level --${model}_model: output and status $st"
             else

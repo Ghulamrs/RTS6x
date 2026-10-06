@@ -2,11 +2,13 @@
 
 #include <stdio.h>
 #include "OutputSink.h"
+#include "Stream.h"
 
 extern "C" int puts(const char *s)
 {
-    rts6x::OutputSink out(1);
+    rts6x::Stream to(stdout);
+    rts6x::OutputSink out(to.writeDescriptor());
     out.put(s);
     out.put('\n');
-    return out.finish() < 0 ? EOF : 0;
+    return to.wrote(out.finish()) < 0 ? EOF : 0;
 }

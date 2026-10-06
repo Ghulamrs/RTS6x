@@ -30,7 +30,7 @@ PRINTFLIB = $(BINDIR)/printf6x.lib
 
 all: $(LIB) $(PRINTFLIB)
 
-$(PRINTFLIB): $(AR6X) $(PRINTFOBJ) tools/provenance
+$(PRINTFLIB): $(AR6X) $(PRINTFOBJ) printf6x.members tools/provenance
 	sh tools/provenance
 	$(AR6X) -r $@ $(PRINTFOBJ)
 

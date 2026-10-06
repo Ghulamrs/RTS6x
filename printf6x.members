@@ -1,6 +1,7 @@
-src/host/CioChannel.cpp
-src/host/cio.s
 src/eh-none/pr3.s
+src/host/CioChannel.cpp
+src/host/CioFiles.cpp
+src/host/cio.s
 src/stdio/DecimalDigits.cpp
 src/stdio/FormatCharacter.cpp
 src/stdio/FormatFloat.cpp
@@ -9,6 +10,7 @@ src/stdio/FormatSpec.cpp
 src/stdio/Formatter.cpp
 src/stdio/IntegerDigits.cpp
 src/stdio/OutputSink.cpp
+src/stdio/StreamWrite.cpp
 src/stdio/fprintf.cpp
 src/stdio/ftable.cpp
 src/stdio/printf.cpp

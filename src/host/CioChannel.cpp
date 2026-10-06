@@ -15,6 +15,22 @@ void CioChannel::request(Command c, const unsigned char params[8], const char *d
     __rts6x_cio_trap();
 }
 
+void CioChannel::requestText(Command c, const unsigned char params[8], const char *a, const char *b)
+{
+    unsigned char *text = _CIOBUF_ + RequestHeader;
+    unsigned n = 0;
+    while (*a && n < DataCapacity - 2) text[n++] = (unsigned char)*a++;
+    text[n++] = 0;
+    if (b) {
+        while (*b && n < DataCapacity - 1) text[n++] = (unsigned char)*b++;
+        text[n++] = 0;
+    }
+    put32(_CIOBUF_, n);
+    _CIOBUF_[4] = (unsigned char)c;
+    for (unsigned i = 0; i < 8; i++) _CIOBUF_[5 + i] = params[i];
+    __rts6x_cio_trap();
+}
+
 int CioChannel::write(int fd, const char *bytes, unsigned count)
 {
     unsigned done = 0;
