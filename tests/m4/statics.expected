@@ -1,0 +1,10 @@
+start
+build 2
+build 1
+ids 1 2
+ids 1 2
+ids 1 2
+counted 44 53
+end of main
+destroy 1
+destroy 2

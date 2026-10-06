@@ -1,0 +1,8 @@
+down A->C yes, A->D yes, A->X yes
+cross X->B yes, same object 1
+fail A->D no, A->X no, A->C yes
+virtual V->J yes, V->L yes, V->R yes, right 1
+ambiguous A->Two yes, P1->P2 yes, A->P2 yes
+void* top 1
+typeid 1 0 0
+names i PKc Pd 1C

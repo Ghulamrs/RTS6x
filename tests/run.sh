@@ -62,7 +62,7 @@ done
 # its compiler (c90 for .c, cpp11 for .cpp) at -O0 and -O2, linked under both of lnk6x's models, run
 # on vm6747sim; output and status (<name>.status) held to the host's. <name>.with: more to link in;
 # <name>.input: what standard input reads.
-for src in tests/m1/*.c tests/m1/*.cpp tests/m2/*.c tests/m2/*.cpp tests/m3/*.c tests/m3/*.cpp tests/helpers/*.c tests/helpers/*.cpp; do
+for src in tests/m1/*.c tests/m1/*.cpp tests/m2/*.c tests/m2/*.cpp tests/m3/*.c tests/m3/*.cpp tests/m4/*.cpp tests/helpers/*.c tests/helpers/*.cpp; do
     [ -f "$src" ] || continue
     dir=$(dirname "$src")
     name=$(basename "$src"); name=${name%.*}
