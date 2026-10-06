@@ -13,8 +13,7 @@ public:
     enum { Capacity = 64 };
     struct Entry { const void *type; const char *address; bool isPublic; };
 
-    Subobjects() : count_(0), overflow_(false) {}
-    // Every subobject of the object at address whose type is type, itself included.
+    // Every subobject of the object at address of type type, itself included (no constructor: static is data).
     void collect(const char *address, const TypeInfo &type);
 
     int count() const { return count_; }

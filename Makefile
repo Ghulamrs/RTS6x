@@ -16,8 +16,8 @@ BINDIR ?= build
 AR6X    = $(BINDIR)/ar6x.exe
 LIB     = $(BINDIR)/rts6x.lib
 CPPSRC  = $(shell find src -name '*.cpp' | sort)
-# eh-none/ is the stand-in for the unwinder: in printf6x.lib, and in rts6x.lib until M5 brings the real one.
-ASMSRC  = $(shell find src -name '*.s' | sort)
+# eh-none/ is the stand-in for the unwinder, in printf6x.lib alone; rts6x.lib has the real one, eh/.
+ASMSRC  = $(shell find src -name '*.s' -not -path 'src/eh-none/*' | sort)
 OBJS    = $(patsubst src/%.cpp,$(OBJDIR)/%.obj,$(CPPSRC)) $(patsubst src/%.s,$(OBJDIR)/%.obj,$(ASMSRC))
 HEADERS = $(shell find src -name '*.h')
 

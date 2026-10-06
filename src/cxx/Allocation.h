@@ -20,7 +20,7 @@ class Allocation {
 public:
     // size bytes (at least one), the new handler run while there are none; null once there is none.
     static void *tryAllocate(size_t size);
-    // The same, or the program ended as std::bad_alloc would end it with nothing to catch it.
+    // The same, or std::bad_alloc thrown.
     static void *allocate(size_t size);
 
     static std::new_handler handler() { return handler_; }

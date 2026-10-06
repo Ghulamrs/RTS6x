@@ -1,0 +1,12 @@
++2 +1 +0 -0 -1 -2 | 58
++2 +1 +0 -0 -1 -2 | 80
++2 +1 +0 -0 -1 -2 | 90
++2 +1 +0 -0 -1 -2 | 1090
+busy 1122
+first 3
+other 5
+first 3
+again 30
+inner x, uncaught 0
+bad_alloc
+done 0

@@ -36,13 +36,13 @@ for /r src %%f in (*.cpp) do (
     "%ASM6X%" "%OBJDIR%\!REL!%%~nf.s" -o "%OBJDIR%\!REL!%%~nf.obj" || exit /b 1
     set "OBJS=!OBJS! "%OBJDIR%\!REL!%%~nf.obj""
 )
-rem eh-none\ is the stand-in for the unwinder, in rts6x.lib until M5 brings the real one.
+rem eh-none\ is the stand-in for the unwinder, in printf6x.lib alone; rts6x.lib has the real one, eh\.
 for /r src %%f in (*.s) do (
     set "REL=%%~dpf"
     set "REL=!REL:%CD%\src\=!"
     if not exist "%OBJDIR%\!REL!" mkdir "%OBJDIR%\!REL!"
     "%ASM6X%" "%%f" -o "%OBJDIR%\!REL!%%~nf.obj" || exit /b 1
-    set "OBJS=!OBJS! "%OBJDIR%\!REL!%%~nf.obj""
+    if /i not "!REL!"=="eh-none\" set "OBJS=!OBJS! "%OBJDIR%\!REL!%%~nf.obj""
 )
 
 rem The provenance check and the tests are shell scripts; Git for Windows carries the shell.
