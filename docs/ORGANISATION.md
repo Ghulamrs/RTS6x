@@ -38,7 +38,7 @@ RTS6x/
   src/
     internal/rts6x.h       private declarations and layouts (FILE, the CIO buffer, the heap)
     boot/      startup, data initialisation, arguments, exit       (S1 ch.18, S5)
-    host/      the C$$IO$$ channel and the low-level file calls    (vm6747sim's host side)
+    host/      the C$$IO$$ channel and the low-level file calls    (sim6747's host side)
     helpers/   __c6xabi_* division, conversion, rounding           (S1 ch.8)
     string/    <string.h>, <ctype.h>                               (S5)
     stdlib/    <stdlib.h>: memory, conversion, sort, search, rand  (S5)
@@ -129,11 +129,11 @@ defines every symbol of `demand-2026-10-06.txt` that the current milestone cover
 
 | test | what it proves | runs on |
 | --- | --- | --- |
-| `tests/cases` | each module's behaviour: a program per module with its `.expected` from clang on the Mac, as cpp11's own cases are | vm6747sim, linked with rts6x.lib only |
-| `tests/helpers` registers | `divi`, `divu`, `remi`, `remu`, `divremi`, `divremu` change no register outside Table 8-9: run under `vm6747sim --trace`, compare the register file before and after each call | vm6747sim |
-| `tests/helpers` arithmetic | division, remainder and conversions against the host's own arithmetic, at the edges (0, ±1, INT_MIN, powers of two, NaN, infinities, subnormals) and on random operands | vm6747sim |
+| `tests/cases` | each module's behaviour: a program per module with its `.expected` from clang on the Mac, as cpp11's own cases are | sim6747, linked with rts6x.lib only |
+| `tests/helpers` registers | `divi`, `divu`, `remi`, `remu`, `divremi`, `divremu` change no register outside Table 8-9: run under `sim6747 --trace`, compare the register file before and after each call | sim6747 |
+| `tests/helpers` arithmetic | division, remainder and conversions against the host's own arithmetic, at the edges (0, ±1, INT_MIN, powers of two, NaN, infinities, subnormals) and on random operands | sim6747 |
 | `tests/layout` | the layouts of D4 agree between RTS6x and both compilers' headers | compile time |
-| the two **tms6747 suites** | the acceptance: cpp11's (357 cases, four levels) and c90's (405) link **rts6x.lib only** and pass both legs | vm6747 + vm6747sim |
+| the two **tms6747 suites** | the acceptance: cpp11's (357 cases, four levels) and c90's (405) link **rts6x.lib only** and pass both legs | vm6747 + sim6747 |
 | the **referee** | the same images run on TI's CCS 5.5 C6747 simulator print the same | Windows box, `tools/c6747/release-check` |
 
 The two suites learn one variable, `RTSLIB` (default: TI's library until M5 passes,
@@ -144,15 +144,15 @@ then `rts6x.lib`), so the switch is one line in each.
 | | delivers | done when |
 | --- | --- | --- |
 | **M0** | repository, `ar6x`, Makefile and build.cmd, provenance and layout tests, test runner | an empty `rts6x.lib` builds on three hosts and lnk6x accepts it |
-| **M1** | boot, host, `puts`, a minimal `printf` (`%d %s %c %x`), `exit`/`atexit`/`abort` | "hello" and an exit-status program run on vm6747sim with no TI library |
+| **M1** | boot, host, `puts`, a minimal `printf` (`%d %s %c %x`), `exit`/`atexit`/`abort` | "hello" and an exit-status program run on sim6747 with no TI library |
 | **M2** | helpers (with the register test), string, ctype, stdlib, the integer `printf` | the c90 suite's integer cases pass on rts6x.lib |
 | **M3** | floating `printf`/`scanf`/`strtod` (exact), math, the rest of stdio, misc | the c90 suite passes whole on rts6x.lib |
 | **M4** | cxx: new/delete, guards, `__cxa_atexit`, RTTI, `__dynamic_cast` | every cpp11 case that throws nothing passes |
 | **M5** | eh: unwinder, PR3 and PR2 (then PR0/1/4), `__cxa_*`, terminate | both suites pass whole at -O0/-O1/-O2/-Os on rts6x.lib; `RTSLIB` default switched |
 | **M6** | the declared-only symbols; the referee run on TI's simulator; speed work (D8) | every header declaration defined; referee agrees |
 | **M7** | integration: RIDE links rts6x.lib instead of TI's library and ships it; release scripts clone RTS6x; `washout.py`, MASTER.SEAL | an installed RIDE builds and runs a C6747 program with nothing of TI's on the link line |
-| **M8** | a Release and a Debug build of every runtime the C6000 links, as the host targets already have: `rts6x.lib`/`printf6x.lib` at -O2 and `rts6xd.lib`/`printf6xd.lib` at -O0 with `_DEBUG`; Shalimar's `shmrt-tms6747` at -O2 and `shmrt-tms6747-debug` at -O0 with `SHM_DEBUG`; RIDE links the pair the configuration names, and the installers ship both | on the Windows PC and the Linux box, from fresh clones: both pairs build, RTS6x's tests pass against each, and an installed RIDE links a C++ and a Shalimar program in Release with the -O2 pair and in Debug with the -O0 pair, each running on vm6747sim |
-| **M9** | Shalimar on the C6000 as on the hosts: its runtime packed as `shmrt6x.lib` and `shmrt6xd.lib` beside RTS6x and linked with `-l` (the `.s` kept for the emulator); a Debug build's own session armed through vm6747sim - `SHM_DEBUG` over CIO's getenv, commands on stdin and answers on stderr, a stdin read answering what has arrived | a Shalimar program on the C6000 links the packed runtime in Release and Debug, and in Debug stops at a breakpoint, steps and continues in RIDE as it does on Windows and Linux |
+| **M8** | a Release and a Debug build of every runtime the C6000 links, as the host targets already have: `rts6x.lib`/`printf6x.lib` at -O2 and `rts6xd.lib`/`printf6xd.lib` at -O0 with `_DEBUG`; Shalimar's `shmrt-tms6747` at -O2 and `shmrt-tms6747-debug` at -O0 with `SHM_DEBUG`; RIDE links the pair the configuration names, and the installers ship both | on the Windows PC and the Linux box, from fresh clones: both pairs build, RTS6x's tests pass against each, and an installed RIDE links a C++ and a Shalimar program in Release with the -O2 pair and in Debug with the -O0 pair, each running on sim6747 |
+| **M9** | Shalimar on the C6000 as on the hosts: its runtime packed as `shmrt6x.lib` and `shmrt6xd.lib` beside RTS6x and linked with `-l` (the `.s` kept for the emulator); a Debug build's own session armed through sim6747 - `SHM_DEBUG` over CIO's getenv, commands on stdin and answers on stderr, a stdin read answering what has arrived | a Shalimar program on the C6000 links the packed runtime in Release and Debug, and in Debug stops at a breakpoint, steps and continues in RIDE as it does on Windows and Linux |
 | **M10** | (beyond RTS6x) C and C++ debugging on x86_64-windows: c90 and cpp11 write debug information a Windows debugger reads (CodeView in the object, a PDB at the link), or RIDE drives a debugger that reads the DWARF they write | a c90 and a cpp11 program built for x86_64-windows in Debug stop at a breakpoint, step and show locals in RIDE, as on Linux and the Mac |
 | **M11** | (beyond RTS6x) Shalimar's optimiser on arm64-darwin, and an -O2 that does more than -O1 on every host | shalimar -O1 and -O2 change the code on all three hosts, the Shalimar suite passing at each level |
 
@@ -166,7 +166,7 @@ then `rts6x.lib`), so the switch is one line in each.
 | RIDE-4.7 packaging | release scripts clone and build RTS6x; `washout.py`; MASTER.SEAL | M7 |
 | RIDE-4.7 | the configuration chooses `rts6x.lib` or `rts6xd.lib`, `shmrt-tms6747` or `shmrt-tms6747-debug`; the workspace, RIDE.sln and the installers carry both | M8 |
 | VM6747/Compiler-Si | the C6000 Shalimar runtime built twice, -O2 and -O0 with `SHM_DEBUG` | M8 |
-| RIDE-4.7, VM6747-sim | the packed Shalimar runtime; the session through vm6747sim; a stdin read that answers what has arrived | M9 |
+| RIDE-4.7, SIM6747 | the packed Shalimar runtime; the session through sim6747; a stdin read that answers what has arrived | M9 |
 | C++Optimize, VM6747/Compiler-Ci, RIDE-4.7 | debug information for x86_64-windows, or a debugger that reads theirs | M10 |
 | VM6747/Compiler-Si | the optimiser on arm64-darwin; -O2 | M11 |
 | LNK6x | none expected (D7); a fix only if a test needs one | - |

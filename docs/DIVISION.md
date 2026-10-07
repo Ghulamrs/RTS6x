@@ -66,10 +66,10 @@ build on the Mac, value, end and ERANGE, on 2026-10-07.
 
 Both tests are generators: `-DROUNDS=n` (and for strtod `-DCOUNT=n -DSEED=s`) make them as large as
 wanted. Build the same file for the host (`clang++ -O1 -ffp-contract=off`) and with cpp11 for the
-C6000, run the second on vm6747sim, and compare the printed lines: each is a hash of a block's
+C6000, run the second on sim6747, and compare the printed lines: each is a hash of a block's
 results, so a difference names the block.
 
-## Measured, vm6747sim's cycles (cpp11 -O2, `tests/speed`)
+## Measured, sim6747's cycles (cpp11 -O2, `tests/speed`)
 
 | benchmark | before | now | TI rts6740 |
 | --- | --- | --- | --- |

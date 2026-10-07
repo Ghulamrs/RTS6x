@@ -2,7 +2,7 @@
 # Two of each library: rts6x.lib and printf6x.lib at -O2 for a Release build, rts6xd.lib and
 # printf6xd.lib at -O0 with _DEBUG for a Debug one - the flags RIDE gives a program in each.
 # ar6x is built first with the host's compiler, like ASM6x and LNK6x. Objects live outside the
-# checkout, as the siblings keep theirs; CPP11=, ASM6X=, LNK6X=, VMSIM= name the tools.
+# checkout, as the siblings keep theirs; CPP11=, ASM6X=, LNK6X=, SIM6747= name the tools.
 ifeq ($(origin CXX),default)
   ifneq ($(shell command -v clang++ 2>/dev/null),)
     CXX := clang++

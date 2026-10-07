@@ -15,7 +15,7 @@ library's source. This file states the rule, how it is checked, and what may be 
 ## What may be read
 
 The specifications listed in `ANALYSIS.md` section 2, our own tools' source
-(cpp11, c90, ASM6x, LNK6x, vm6747sim, VM6747), and our own tests. Facts our tools
+(cpp11, c90, ASM6x, LNK6x, sim6747, VM6747), and our own tests. Facts our tools
 already record about a format (lnk6x's `rle24`, cpp11's exception tables) are used
 as those tools describe them.
 

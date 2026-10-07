@@ -1,5 +1,5 @@
 // Spec: the C$$IO$$ host channel, its write command (0xF3): parameters fd:2 and count:2, and the
-// answer's first parameter the count written, 0xFFFF for a refusal (vm6747sim src/C6xHost.cpp).
+// answer's first parameter the count written, 0xFFFF for a refusal (sim6747 src/C6xHost.cpp).
 
 #include "CioChannel.h"
 

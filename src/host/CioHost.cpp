@@ -1,4 +1,4 @@
-// Spec: the C$$IO$$ host channel (vm6747sim src/C6xHost.cpp): unlink 0xF5 and rename 0xF7 (paths as
+// Spec: the C$$IO$$ host channel (sim6747 src/C6xHost.cpp): unlink 0xF5 and rename 0xF7 (paths as
 // data, 0 answered for success), getenv 0xF6 (the value answered as data, empty if unset), the
 // time 0xF8 and the cycle count 0xF9 (32 bits at the answer's first parameter).
 

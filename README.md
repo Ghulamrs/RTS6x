@@ -9,4 +9,4 @@ cpp11 or c90, ASM6x and LNK6x links `rts6x.lib` in place of TI's `rts6740`.
 
 Built so far: `build/rts6x.lib`, and `build/printf6x.lib` - `printf`, `fprintf`, `sprintf` and
 `wprintf` alone, with the classes under them - whose output matches the host's for every C
-conversion, on vm6747sim and on TI's CCS 5.5 simulator. `make check` runs every test.
+conversion, on sim6747 and on TI's CCS 5.5 simulator. `make check` runs every test.

@@ -2,7 +2,7 @@
 
 Our own run-time library for the TMS320C6747, written from published interface
 specifications and measured from our own tools, so that a program built by
-**cpp11 (or c90) + ASM6x + LNK6x** and run on **vm6747sim** contains no TI code.
+**cpp11 (or c90) + ASM6x + LNK6x** and run on **sim6747** contains no TI code.
 Today lnk6x links every program against TI's `rts6740_elf_eh.lib`, which TI's
 `mklib` built from TI's run-time source and TI's own compiler. RTS6x replaces it.
 
@@ -19,7 +19,7 @@ implementation of any of them is opened while RTS6x is written.
 | read | not read, for this project |
 | --- | --- |
 | The specifications in section 2 | TI's `rtssrc.zip` (the source `rts6740` is built from) |
-| Our own tools' source: cpp11, c90, ASM6x, LNK6x, vm6747sim, VM6747 | libgcc, including GCC's C6X helper routines |
+| Our own tools' source: cpp11, c90, ASM6x, LNK6x, sim6747, VM6747 | libgcc, including GCC's C6X helper routines |
 | Our own test cases and their measured behaviour | newlib and libgloss (which has a tic6x port) |
 | | glibc, uClibc, musl, Linux `arch/c6x` code |
 | | LLVM libunwind, libc++abi, libcxxrt, libsupc++ |
@@ -100,7 +100,7 @@ These are fixed by tools we already have, and RTS6x must meet them as they stand
 - lnk6x reads `ar` archives. RTS6x needs an archiver of its own (phase 2): the
   host's `ar` would be borrowed code in the build.
 
-**vm6747sim** (and TI's simulator, which uses the same protocol)
+**sim6747** (and TI's simulator, which uses the same protocol)
 - `C$$EXIT`: a label the program reaches when it ends; A4 is the status.
   `--main-status` reads `main`'s return or `exit`'s argument instead, because TI's
   boot calls `exit(1)`; RTS6x can simply call `exit(main(...))`.
@@ -108,7 +108,7 @@ These are fixed by tools we already have, and RTS6x must meet them as they stand
   `_CIOBUF_` - `[length:4][command:1][parameters:8][data]` - and calls `C$$IO$$`;
   the host answers in the same buffer as `[length:4][parameters:8][data]`.
   Commands 0xF0-0xF9: open, close, read, write, lseek, unlink, getenv, rename,
-  time, clock. `vm6747sim/src/C6xHost.cpp` is the host side and the reference.
+  time, clock. `sim6747/src/C6xHost.cpp` is the host side and the reference.
 
 **cpp11 and c90**
 - Calling convention and frame layout: S1 ch.3-4, as cpp11 emits them
@@ -157,7 +157,7 @@ stays as it is: it is the reference RTS6x's results are compared with, besides
 1. **cpp11 writes `.ref .S1` / `.ref .S2`** into its assembly: the unit field of
    `BNOP .S2 ...` is taken for a symbol. Harmless today (nothing refers to it),
    a cpp11 bug to fix.
-2. **vm6747sim does serve file I/O** (open, read, write, lseek, unlink, rename).
+2. **sim6747 does serve file I/O** (open, read, write, lseek, unlink, rename).
    So G1 - "no CIO file I/O" - is not the full explanation of `include-streams`
    failing on it; re-measure once RTS6x has its own `fopen`.
 3. **TI's `rts6740` hands a thrown pointer to a base-class handler unadjusted**
@@ -188,5 +188,5 @@ stays as it is: it is the reference RTS6x's results are compared with, besides
 | 9 the rest | setjmp/longjmp, time, locale, signal, `getenv` | small |
 
 Acceptance, for each part and at the end: both tms6747 suites link against RTS6x
-only - `-l rts6x.lib`, no `-i ~/c6747-lib` - and pass on vm6747sim at every level,
+only - `-l rts6x.lib`, no `-i ~/c6747-lib` - and pass on sim6747 at every level,
 with TI's simulator used as a referee and never linked into anything.

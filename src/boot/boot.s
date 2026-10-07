@@ -1,5 +1,5 @@
 ; Spec: SPRAB89B 3 (B15 the stack pointer, 8-byte aligned, *B15 a free word; B14 the data page pointer;
-; A4 the first argument) and vm6747sim's C$$EXIT stop, A4 the status. _c_int00 sets the two pointers
+; A4 the first argument) and sim6747's C$$EXIT stop, A4 the status. _c_int00 sets the two pointers
 ; and enters Startup; __rts6x_halt, which is C$$EXIT, is where every way of ending arrives.
 ; __rts6x_bounds: the tables Startup walks, as weak references - lnk6x, as TI's linker, defines
 ; them only when the image has the section, and a missing one is then 0, an empty table.
