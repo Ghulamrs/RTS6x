@@ -13,7 +13,7 @@ class Stream {
 public:
     // The bits of FILE::flags. A slot of _ftable is free when Open is clear.
     enum Flag { Open = 1, Readable = 2, Writable = 4, AtEnd = 8, Failed = 0x10, OwnBuffer = 0x20,
-                Temporary = 0x40 };
+                Temporary = 0x40, Binary = 0x80 };
     enum { Capacity = 512, FirstFree = 3 };
 
     explicit Stream(FILE *f) : f_(f) {}
@@ -50,6 +50,14 @@ private:
     bool ensureBuffer();
     // Read-ahead dropped, the host's position made the stream's own.
     void giveBack();
+    // A text stream's last fill: where it began on the host, and the characters it gave (-1: none).
+    void recordFill(long at, int count);
+    void forgetFill() { fillCount_[f_ - _ftable] = -1; }
+    // The host position of the next character, the host being at end: CR LF read as LF counted.
+    long hostPosition(long end);
+
+    static long fillAt_[RTS6X_FTABLE_COUNT];
+    static int fillCount_[RTS6X_FTABLE_COUNT];
     // The host flags and the stream's own for mode; false if the mode is not one C allows.
     static bool parseMode(const char *mode, unsigned &host, unsigned &own);
 

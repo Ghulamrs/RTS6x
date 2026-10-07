@@ -1,0 +1,21 @@
+after writing: 14
+0:o 1:n 2:e 3:\n 4:t 5:w 6:o 7:\n 8:t 9:h 10:r 11:e 12:e 13:\n 14:EOF
+round trips that failed: 0 of 14
+seek to the seventh: o, ftell 7
+after ungetc, at the start: 1
+after one line 4, SEEK_CUR 0 then: two
+back to 4: two
+update: wrote at 4, now 8
+  one
+  TWO
+  three
+  one
+  2wo
+  three
+line 0 at 0
+line 63 at 504
+line 64 at 512
+line 99 at 792
+at the end 800
+long file, round trips that failed: 0
+near the end: \n

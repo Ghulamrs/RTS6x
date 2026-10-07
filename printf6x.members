@@ -14,6 +14,7 @@ src/stdio/FormatSpec.cpp
 src/stdio/Formatter.cpp
 src/stdio/IntegerDigits.cpp
 src/stdio/OutputSink.cpp
+src/stdio/StreamFill.cpp
 src/stdio/StreamWrite.cpp
 src/stdio/fprintf.cpp
 src/stdio/ftable.cpp

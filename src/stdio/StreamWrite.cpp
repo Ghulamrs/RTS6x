@@ -8,9 +8,11 @@ namespace rts6x {
 
 void Stream::giveBack()
 {
-    long ahead = (long)(f_->bufend - f_->pos);
-    if (ahead) CioChannel::seek(f_->fd, -ahead, CioChannel::FromHere);
+    long end = CioChannel::seek(f_->fd, 0, CioChannel::FromHere);
+    long here = end < 0 ? -1L : hostPosition(end);
+    if (here >= 0 && here != end) CioChannel::seek(f_->fd, here, CioChannel::FromStart);
     f_->pos = f_->bufend = f_->buf;
+    forgetFill();
 }
 
 int Stream::writeDescriptor()

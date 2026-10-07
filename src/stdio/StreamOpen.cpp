@@ -50,7 +50,8 @@ FILE *Stream::open(const char *path, const char *mode, FILE *slot)
     }
     slot->fd = fd;
     slot->buf = slot->pos = slot->bufend = slot->buff_stop = 0;
-    slot->flags = Open | own;
+    slot->flags = Open | own | (host & CioChannel::Binary ? Binary : 0);
+    Stream(slot).forgetFill();
     return slot;
 }
 
