@@ -2,14 +2,14 @@ close 0
 fgets [first 1
 ]fgetc s, ungetc S, again S
 rest [econd line
-]ftell 23
+]ftell 22
 fgets 3
 , feof 0
 fgets at end null, feof 1, ferror 0
 after rewind feof 0, fscanf 2 -> first 1
 from the end 
 
-seek 6: 1, ftell 10
+seek 6: 1, ftell 7
 1: FIRST 1
 2: second line
 3: 3

@@ -35,7 +35,11 @@ int Stream::getSlow()
         return EOF;
     }
     if ((f_->flags & AtEnd) || !ensureBuffer()) return EOF;
+    // A text file's fill is measured, for ftell: the host may give fewer characters than it passed bytes.
+    bool text = f_->fd > 2 && !(f_->flags & Binary);
+    long at = text ? CioChannel::seek(f_->fd, 0, CioChannel::FromHere) : 0;
     int n = CioChannel::read(f_->fd, (char *)f_->buf, f_->fd == 0 ? 1u : (unsigned)Capacity);
+    if (text) recordFill(at, n);
     if (n <= 0) {
         f_->flags |= n == 0 ? AtEnd : Failed;
         return EOF;
