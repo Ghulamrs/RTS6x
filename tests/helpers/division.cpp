@@ -19,34 +19,31 @@ unsigned long long __c6xabi_remull(unsigned long long, unsigned long long);
 
 namespace {
 
-// Restoring division, one bit a turn from n's top bit; n / d in the return, n % d in r. d is never 0.
+// Shift-and-subtract division: d is shifted up under n, then one quotient bit a turn comes down, so a
+// pair costs the quotient's bits and not the dividend's. n / d in the return, n % d in r; d is never 0.
 unsigned slowDivide(unsigned n, unsigned d, unsigned &r)
 {
-    unsigned q = 0;
-    r = 0;
-    int i = 31;
-    while (i > 0 && ((n >> i) & 1u) == 0) i--;
-    for (; i >= 0; i--) {
-        bool top = (r >> 31) != 0;
-        r = (r << 1) | ((n >> i) & 1u);
+    unsigned q = 0, m = d;
+    int s = 0;
+    while ((m >> 31) == 0 && (m << 1) <= n) { m <<= 1; s++; }
+    for (; s >= 0; s--, m >>= 1) {
         q <<= 1;
-        if (top || r >= d) { r -= d; q |= 1u; }
+        if (n >= m) { n -= m; q |= 1u; }
     }
+    r = n;
     return q;
 }
 
 unsigned long long slowDivide(unsigned long long n, unsigned long long d, unsigned long long &r)
 {
-    unsigned long long q = 0;
-    r = 0;
-    int i = 63;
-    while (i > 0 && ((n >> i) & 1u) == 0) i--;
-    for (; i >= 0; i--) {
-        bool top = (r >> 63) != 0;
-        r = (r << 1) | ((n >> i) & 1u);
+    unsigned long long q = 0, m = d;
+    int s = 0;
+    while ((m >> 63) == 0 && (m << 1) <= n) { m <<= 1; s++; }
+    for (; s >= 0; s--, m >>= 1) {
         q <<= 1;
-        if (top || r >= d) { r -= d; q |= 1u; }
+        if (n >= m) { n -= m; q |= 1u; }
     }
+    r = n;
     return q;
 }
 
