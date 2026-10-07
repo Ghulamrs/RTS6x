@@ -1,7 +1,7 @@
 ©2026 G. R. Akhtar - RTS6x 1.0, a TMS320C6747 run-time support library
 Release seal, version 1.0, sealed 07-10-2026
 Written by tools/seal; check it with `tools/seal check`.
-CRC32  size  file - 367 files, seal 154FAF90
+CRC32  size  file - 375 files, seal B8D74365
 ------------------------------------------------------------------
 D357B9A5      1528  src/boot/Decompressor.cpp
 9AAA9186      1287  src/boot/Decompressor.h
@@ -113,7 +113,9 @@ DCC93285       276  src/helpers/__c6xabi_fltulld.cpp
 6C0BBECA       256  src/helpers/__c6xabi_remlli.cpp
 00061DEE       293  src/helpers/__c6xabi_remull.cpp
 B9FE1A71       264  src/helpers/__c6xabi_trunc.cpp
+DA82EF0D       461  src/helpers/divd-reference.cpp
 F3CEDF82      4767  src/helpers/divd.s
+A6C530DF       458  src/helpers/divf-reference.cpp
 3DED646D      3232  src/helpers/divf.s
 C52ED982      3122  src/helpers/divi.s
 CCF9D97A      2920  src/helpers/divremi.s
@@ -340,14 +342,20 @@ E03D77F7       843  src/string/Memory.cpp
 B2D6B5C8      1129  src/string/Memory.h
 E2A9B23A       187  src/string/memchr.cpp
 E2B1E344       186  src/string/memcmp.cpp
+1627035B       671  src/string/memcpy-reference.cpp
 D4453025      2027  src/string/memcpy.s
+45385BE0       615  src/string/memmove-reference.cpp
 16CAC10D      1487  src/string/memmove.s
+04F97D66       675  src/string/memset-reference.cpp
 57869057      2048  src/string/memset.s
 BEFAAF54       178  src/string/strcat.cpp
+C606A34C       462  src/string/strchr-reference.cpp
 A018E201      2202  src/string/strchr.s
+3E3E8647       470  src/string/strcmp-reference.cpp
 CC1C9A0B      1563  src/string/strcmp.s
 E9AA27AE       176  src/string/strcpy.cpp
 5AC1D77B       184  src/string/strcspn.cpp
+466E232E       409  src/string/strlen-reference.cpp
 68205F9C      1674  src/string/strlen.s
 43266968       190  src/string/strncmp.cpp
 5C09F64B       191  src/string/strncpy.cpp
