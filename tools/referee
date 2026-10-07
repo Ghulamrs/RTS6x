@@ -55,7 +55,7 @@ agree=0; differ=0; norun=0
 for o in "$WORK/ref"/*.out; do
     id=$(basename "$o" .out); r="$WORK/back/$id.result"
     count=$(field "$r" count 2>/dev/null); pc=$(field "$r" pc 2>/dev/null); ex=$(field "$r" exit 2>/dev/null); a4=$(field "$r" a4 2>/dev/null)
-    if [ -z "$count" ]; then echo "NO RUN  $id"; norun=$((norun+1)); continue; fi
+    if [ -z "$count" ]; then echo "NO RUN  $id: $(tr -d '\r' < "$r" 2>/dev/null | tr '\n' ' ' | sed 's/^BOX [^ ]* //')"; norun=$((norun+1)); continue; fi
     tr -d '\r' < "$WORK/back/$id.stdout" 2>/dev/null > "$WORK/$id.ti" || : > "$WORK/$id.ti"
     want=$(cat "$WORK/vm/$id.rc"); got=$(( ${a4:-0} & 255 ))
     if [ "$pc" = "$ex" ] && [ "$got" = "$want" ] && cmp -s "$WORK/$id.ti" "$WORK/vm/$id.out"; then agree=$((agree+1))
