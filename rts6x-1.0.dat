@@ -1,7 +1,7 @@
 ©2026 G. R. Akhtar - RTS6x 1.0, a TMS320C6747 run-time support library
 Release seal, version 1.0, sealed 07-10-2026
 Written by tools/seal; check it with `tools/seal check`.
-CRC32  size  file - 375 files, seal B8D74365
+CRC32  size  file - 378 files, seal DA2A48F5
 ------------------------------------------------------------------
 D357B9A5      1528  src/boot/Decompressor.cpp
 9AAA9186      1287  src/boot/Decompressor.h
@@ -10,7 +10,7 @@ F6B4D38C      1524  src/boot/Startup.h
 8D644F76       284  src/boot/__TI_decompress_none.cpp
 53A08E3E       287  src/boot/__TI_decompress_rle24.cpp
 958C983C       272  src/boot/__TI_zero_init.cpp
-CAD4AD1C      1197  src/boot/boot.s
+0AE90279      1195  src/boot/boot.s
 652BD312       222  src/boot/version.s
 1A3143AB      1235  src/ctype/CharacterClass.h
 DF0AF9E7       188  src/ctype/isalnum.cpp
@@ -83,7 +83,7 @@ B531C43C       191  src/eh/get_terminate.cpp
 5EDC3E61       229  src/eh/uncaught_exception.cpp
 937CC925       131  src/eh/unexpected.cpp
 DC89A967      1179  src/exit/Termination.cpp
-5F8366E8      1197  src/exit/Termination.h
+CA3F44AD      1195  src/exit/Termination.h
 B1E470E3       393  src/exit/__cxa_atexit.cpp
 B6FB341F       185  src/exit/abort.cpp
 37ECDC78       214  src/exit/atexit.cpp
@@ -123,15 +123,15 @@ D90A48C7      2709  src/helpers/divremu.s
 8AA11761      2957  src/helpers/divu.s
 5A7D8463      2688  src/helpers/remi.s
 A69306D9      2621  src/helpers/remu.s
-B905F5E4      1713  src/host/CioChannel.cpp
-CBF17D63      3294  src/host/CioChannel.h
+B26BF145      1711  src/host/CioChannel.cpp
+79722912      3292  src/host/CioChannel.h
 06F29FF6      1992  src/host/CioFiles.cpp
-1089B8F7      1577  src/host/CioHost.cpp
+1E5CFE04      1575  src/host/CioHost.cpp
 DA20F0E0      1070  src/host/DescriptorModes.h
 5126D024       548  src/host/DescriptorModesExchange.cpp
 77AF52FF       480  src/host/DescriptorTable.cpp
 8865FFF8       252  src/host/_setmode.cpp
-A7A59E97       430  src/host/cio.s
+C7B658F6       428  src/host/cio.s
 1603B27F       909  src/internal/rts6x.h
 9DDA2A7F       544  src/locale/localeconv.cpp
 0AEBB0AE       515  src/locale/setlocale.cpp
@@ -254,11 +254,12 @@ AE1429A5      2213  src/stdio/ScanFloatText.cpp
 AB13E0D2      2694  src/stdio/ScanText.cpp
 4F6BB9B1      3357  src/stdio/Scanner.cpp
 FE5EAA00      2279  src/stdio/Scanner.h
-B04C9400      2342  src/stdio/Stream.h
-528C684D      2615  src/stdio/StreamOpen.cpp
-26FB0284       879  src/stdio/StreamPosition.cpp
-0B4BD791      2066  src/stdio/StreamRead.cpp
-1CC0FAAF       659  src/stdio/StreamWrite.cpp
+C59B6F35      2779  src/stdio/Stream.h
+4810914D      1609  src/stdio/StreamFill.cpp
+C8B5658E      2689  src/stdio/StreamOpen.cpp
+2C0B7DDA       988  src/stdio/StreamPosition.cpp
+863BF8C7      2335  src/stdio/StreamRead.cpp
+9EF6308A       765  src/stdio/StreamWrite.cpp
 E4FF7A7D       169  src/stdio/clearerr.cpp
 093DED39       319  src/stdio/close.cpp
 15574A97       200  src/stdio/fclose.cpp
@@ -312,8 +313,10 @@ E0B1ED51      4936  src/stdlib/FloatTextDecimal.cpp
 466C72EF      1950  src/stdlib/FloatTextShort.cpp
 1AF78E1A      2497  src/stdlib/Heap.cpp
 2448F000      1372  src/stdlib/Heap.h
-4A074A16      2236  src/stdlib/NumberText.cpp
-424018D5       860  src/stdlib/NumberText.h
+466F8DAA      2479  src/stdlib/NumberText.cpp
+9D713112      1208  src/stdlib/NumberText.h
+7CABCE6C      3531  src/stdlib/NumberTextConvert.cpp
+F4C82A8A      1683  src/stdlib/NumberTextDecimal.h
 F9B70240      2604  src/stdlib/PowersOfFive.cpp
 A29E3AB7       142  src/stdlib/Random.cpp
 F911F78A       620  src/stdlib/Random.h
@@ -321,8 +324,8 @@ F911F78A       620  src/stdlib/Random.h
 D11EADE5      1386  src/stdlib/Sorting.h
 1A32FDC8       110  src/stdlib/abs.cpp
 07600FDA       165  src/stdlib/atof.cpp
-42BAEE4A       170  src/stdlib/atoi.cpp
-BC408608       166  src/stdlib/atol.cpp
+355315EC       195  src/stdlib/atoi.cpp
+9ACEFCC4       196  src/stdlib/atol.cpp
 5A58E7AB       273  src/stdlib/bsearch.cpp
 2E580ED1       182  src/stdlib/calloc.cpp
 CEEA04B1       135  src/stdlib/free.cpp
@@ -333,8 +336,8 @@ AD6C814F       138  src/stdlib/rand.cpp
 DDD44BB3       161  src/stdlib/realloc.cpp
 BBA2CAA0       151  src/stdlib/srand.cpp
 0429C524       690  src/stdlib/strtod.cpp
-EF263E84       196  src/stdlib/strtol.cpp
-DA2678AF       215  src/stdlib/strtoul.cpp
+202BB1A9       229  src/stdlib/strtol.cpp
+6B61A6D6       234  src/stdlib/strtoul.cpp
 DC520D2E       256  src/stdlib/sysmem.s
 D59007F6      2071  src/string/CString.cpp
 00D16752      1450  src/string/CString.h
