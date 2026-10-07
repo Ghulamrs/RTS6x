@@ -1,4 +1,4 @@
-// Spec: the C$$IO$$ host channel (vm6747sim src/C6xHost.cpp): a request in _CIOBUF_ is
+// Spec: the C$$IO$$ host channel (sim6747 src/C6xHost.cpp): a request in _CIOBUF_ is
 // [length:4][command:1][parameters:8][data], the answer [length:4][parameters:8][data], little-endian.
 // One class owns the buffer; the C library's file calls go through it and nothing else touches it.
 #ifndef RTS6X_CIO_CHANNEL_H

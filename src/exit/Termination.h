@@ -14,7 +14,7 @@ public:
     static int add(void (*function)(void));
     // A destructor and its object, for exit to call in the same list (C++).
     static int add(void (*destructor)(void *), void *object);
-    // Calls the list, last first, then stops with status - which vm6747sim reports.
+    // Calls the list, last first, then stops with status - which sim6747 reports.
     static void exit(int status);
     // Stops at once, the list not called: 134, as a host shell reports a program that aborted.
     static void abort();

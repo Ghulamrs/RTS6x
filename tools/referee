@@ -1,15 +1,15 @@
 #!/bin/sh
 # Spec: none - M6's referee (docs/ORGANISATION.md 5): the images both tms6747 suites link against
 # rts6x.lib run on TI's own CCS 5.5 C6747 cycle-accurate simulator, on the Windows box, and their
-# output and exit status are compared with vm6747sim's, which the suites have already held to expected.
+# output and exit status are compared with sim6747's, which the suites have already held to expected.
 #   tools/referee              both suites, rebuilt at -O2      tools/referee cpp11|c90    one of them
 #   KEEP=1 tools/referee       the suites' images as they are, not rebuilt; ONLY=word, the images named so
-#   PREPARE=dir tools/referee  stop with the images and vm6747sim's answers in dir (a box with no route
+#   PREPARE=dir tools/referee  stop with the images and sim6747's answers in dir (a box with no route
 #   to Windows builds and runs them); FROM=dir tools/referee  ship and judge what PREPARE left there
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CPP=$(cd "$ROOT/../C++Optimize" && pwd); C90=$(cd "$ROOT/../VM6747/Compiler-Ci" && pwd)
-VMSIM=${VMSIM:-$ROOT/../VM6747-sim/vm6747.exe}
+SIM6747=${SIM6747:-$ROOT/../SIM6747/sim6747.exe}
 WINDOWS=${CXX1_WINDOWS:-windows}; REMOTE='C:\cxx1\referee'
 WHICH=${1:-both}; T0=$(date +%s)
 WORK=$(mktemp -d); trap 'rm -rf "$WORK"' EXIT
@@ -25,12 +25,12 @@ if [ -z "${FROM:-}" ] && [ "${KEEP:-0}" != 1 ]; then
         (cd "$C90" && CC1="$WORK/c90-O2" TIRTS="$ROOT/build" RTSLIB=rts6x.lib sh tests/tms6747.sh | tail -2)
     fi
 fi
-take() {   # suite prefix, image: copied with vm6747sim's own output and status beside it
+take() {   # suite prefix, image: copied with sim6747's own output and status beside it
     id=$1.$(basename "$2" .ti.out)
     case "$id" in *"${ONLY:-}"*) ;; *) return ;; esac
-    "$VMSIM" --dis "$2" 2>/dev/null | grep -q __rts6x_halt || { echo "referee: $2 is not linked with rts6x.lib"; return; }
+    "$SIM6747" --dis "$2" 2>/dev/null | grep -q __rts6x_halt || { echo "referee: $2 is not linked with rts6x.lib"; return; }
     cp "$2" "$WORK/ref/$id.out"
-    ( ulimit -t 60 2>/dev/null; "$VMSIM" --run "$2" ) > "$WORK/vm/$id.out" 2>&1 < /dev/null; echo $? > "$WORK/vm/$id.rc"
+    ( ulimit -t 60 2>/dev/null; "$SIM6747" --run "$2" ) > "$WORK/vm/$id.out" 2>&1 < /dev/null; echo $? > "$WORK/vm/$id.rc"
 }
 if [ -n "${FROM:-}" ]; then cp "$FROM"/ref/*.out "$WORK/ref/" && cp "$FROM"/vm/* "$WORK/vm/" || exit 1
 else
@@ -49,7 +49,7 @@ mkdir -p "$WORK/back"
 scp -q -o BatchMode=yes "$WINDOWS:C:/cxx1/referee/out/*" "$WORK/back/" 2>/dev/null
 [ -f "$WORK/back/referee.done" ] || { echo "referee: the Windows worker did not finish"; tr -d '\r' < "$WORK/windows.log" | tail -8; exit 1; }
 
-# The verdict: TI's output against vm6747sim's, and the status A4 holds at C$$EXIT against vm6747sim's.
+# The verdict: TI's output against sim6747's, and the status A4 holds at C$$EXIT against sim6747's.
 field() { tr -d '\r' < "$1" | tr ' ' '\n' | sed -n "s/^$2=//p" | head -1; }
 agree=0; differ=0; norun=0
 for o in "$WORK/ref"/*.out; do
@@ -60,7 +60,7 @@ for o in "$WORK/ref"/*.out; do
     want=$(cat "$WORK/vm/$id.rc"); got=$(( ${a4:-0} & 255 ))
     if [ "$pc" = "$ex" ] && [ "$got" = "$want" ] && cmp -s "$WORK/$id.ti" "$WORK/vm/$id.out"; then agree=$((agree+1))
     else
-        differ=$((differ+1)); echo "DIFFER  $id: TI status $got pc $pc, vm6747sim status $want"
+        differ=$((differ+1)); echo "DIFFER  $id: TI status $got pc $pc, sim6747 status $want"
         diff "$WORK/vm/$id.out" "$WORK/$id.ti" | head -6 | sed 's/^/        /'
     fi
 done

@@ -55,7 +55,7 @@ if /i not "%~1"=="check" exit /b 0
 if "%C90%"=="" set "C90=%RIDEBIN%\c90.exe"
 if "%LNK6X%"=="" set "LNK6X=%RIDEBIN%\lnk6x.exe"
 if "%VM%"=="" set "VM=%RIDEBIN%\vm6747.exe"
-if "%VMSIM%"=="" set "VMSIM=%RIDEBIN%\vm6747sim.exe"
+if "%SIM6747%"=="" set "SIM6747=%RIDEBIN%\sim6747.exe"
 if "%R%"=="r" ("%SH%" tests/run.sh & exit /b !errorlevel!)
 "%SH%" tests/run.sh || exit /b 1
 set "D=d"

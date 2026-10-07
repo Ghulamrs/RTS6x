@@ -18,7 +18,7 @@ come out identical.
 
 The C674x adds and multiplies `double` in hardware, correctly rounded, but **reads a
 subnormal operand as zero and flushes a subnormal result to zero** (SPRUFE8 2.8.8;
-vm6747sim models it). Division and conversions are software helpers. So:
+sim6747 models it). Division and conversions are software helpers. So:
 
 - every classification (zero, subnormal, NaN, infinity) is done on the bits, never by a
   floating compare, which would call a subnormal zero;
@@ -103,7 +103,7 @@ stays within 0.500006 of the true value - the host libm is a comparison, not the
 
 `tests/m3/host/math-target-check.sh` then holds the C6000 build to the host's: 6600 results
 of `math-values.cpp` (subnormal inputs and results among them) are bit for bit the same from
-cpp11 -O0 and -O2 on vm6747sim as from the host build that `math-check.sh` measures.
+cpp11 -O0 and -O2 on sim6747 as from the host build that `math-check.sh` measures.
 `FTZ=1 math-check.sh` runs the host build under flush-to-zero as a second check that no
 kernel leans on subnormal arithmetic: the only differences are inputs the host's own test
 arithmetic flushed, and `atan2`'s tiny quotient, which the C674x divides in software.
@@ -118,7 +118,7 @@ arithmetic flushed, and `atan2`'s tiny quotient, which the C674x divides in soft
   (`math-accuracy-table.h`, written by `make-accuracy-table.py`); every result within an ulp.
 - c90's own `lib_math` and `fp_nan_ordering` pass on rts6x.lib, on both legs.
 
-## Speed on the C674x (vm6747sim, cycles a call, cpp11 -O2)
+## Speed on the C674x (sim6747, cycles a call, cpp11 -O2)
 
 `tests/speed/math.cpp`'s functions one at a time, 300 calls each, the loop's own cost taken out;
 TI is `rts6740_elf_eh.lib` linked with the same program:
