@@ -2,5 +2,5 @@
 	.global	__rts6x_version
 	.sect	".const"
 __rts6x_version:
-	.string	"RTS6x 1.0, a TMS320C6747 run-time support library"
+	.string	"RTS6x 1.1, a TMS320C6747 run-time support library"
 	.byte	0

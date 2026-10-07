@@ -3,6 +3,8 @@
 # against rts6x.lib and TI's rts6740_elf_eh.lib, both images run on the CCS 5.5 C6747 cycle-accurate
 # simulator on the Windows box. The two outputs must agree (or rts6x match a NAME.expected, the host's exact answer); the cycles are compared, rts6x over TI.
 #   tools/speed            every benchmark        ONLY=word tools/speed      those named so
+#   PREPARE=dir tools/speed  stop with the images in dir (built on a box with no route to Windows);
+#   FROM=dir tools/speed     ship and judge what PREPARE left there
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CPP=$(cd "$ROOT/../C++Optimize" && pwd)
@@ -19,7 +21,8 @@ printf '%s\n' '--rom_model' '--stack_size=0x100000' '--heap_size=0x100000' \
   'SECTIONS { .text > RAM .const > RAM .data > RAM .bss > RAM .far > RAM .fardata > RAM .neardata > RAM' \
   '  .rodata > RAM .cinit > RAM .init_array > RAM .switch > RAM .cio > RAM .stack > RAM .sysmem > RAM }' > "$WORK/link.cmd"
 NAMES=""
-for src in "$ROOT"/tests/speed/*.cpp; do
+if [ -n "${FROM:-}" ]; then cp "$FROM"/ref/*.out "$WORK/ref/" && NAMES=$(cat "$FROM/names") || exit 1; fi
+[ -n "${FROM:-}" ] || for src in "$ROOT"/tests/speed/*.cpp; do
     n=$(basename "$src" .cpp)
     case "$n" in *"${ONLY:-}"*) ;; *) continue ;; esac
     if "$CPP11" -arch tms6747 -nologo -O2 -S "$src" -o "$WORK/$n.s" > "$WORK/$n.log" 2>&1 &&
@@ -28,6 +31,7 @@ for src in "$ROOT"/tests/speed/*.cpp; do
        "$LNK6X" -mv6740 --abi=eabi -i "$TILIB" "$WORK/link.cmd" "$WORK/$n.obj" -l rts6740_elf_eh.lib -o "$WORK/ref/$n.ti.out" >> "$WORK/$n.log" 2>&1
     then NAMES="$NAMES $n"; else echo "speed: $n did not build:"; head -4 "$WORK/$n.log" | sed 's/^/      /'; fi
 done
+if [ -n "${PREPARE:-}" ]; then mkdir -p "$PREPARE" && cp -R "$WORK/ref" "$PREPARE/" && echo "$NAMES" > "$PREPARE/names" && echo "speed: prepared in $PREPARE"; exit 0; fi
 COPYFILE_DISABLE=1 tar -C "$WORK" --no-xattrs -czf "$WORK/ref.tgz" ref || exit 1
 scp -q -o BatchMode=yes "$WORK/ref.tgz" "$WINDOWS:C:/cxx1/ref.tgz" || { echo "speed: cannot ship to $WINDOWS"; exit 1; }
 ssh -o BatchMode=yes "$WINDOWS" "rmdir /s /q $REMOTE 2>nul & mkdir $REMOTE && tar -C $REMOTE --strip-components=1 -xzf C:\\cxx1\\ref.tgz && del C:\\cxx1\\ref.tgz" >/dev/null 2>&1 || exit 1

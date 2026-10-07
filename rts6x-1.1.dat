@@ -1,7 +1,7 @@
-©2026 G. R. Akhtar - RTS6x 1.0, a TMS320C6747 run-time support library
-Release seal, version 1.0, sealed 07-10-2026
+©2026 G. R. Akhtar - RTS6x 1.1, a TMS320C6747 run-time support library
+Release seal, version 1.1, sealed 08-10-2026
 Written by tools/seal; check it with `tools/seal check`.
-CRC32  size  file - 378 files, seal 5AFCD02F
+CRC32  size  file - 378 files, seal 3346A221
 ------------------------------------------------------------------
 D357B9A5      1528  src/boot/Decompressor.cpp
 9AAA9186      1287  src/boot/Decompressor.h
@@ -11,7 +11,7 @@ F6B4D38C      1524  src/boot/Startup.h
 53A08E3E       287  src/boot/__TI_decompress_rle24.cpp
 958C983C       272  src/boot/__TI_zero_init.cpp
 0AE90279      1195  src/boot/boot.s
-652BD312       222  src/boot/version.s
+0CE72F1F       222  src/boot/version.s
 1A3143AB      1235  src/ctype/CharacterClass.h
 DF0AF9E7       188  src/ctype/isalnum.cpp
 A59B9093       188  src/ctype/isalpha.cpp
@@ -382,4 +382,4 @@ E925D82B       191  src/time/difftime.cpp
 A6A1B70E       282  src/time/time.cpp
 FD248211     11768  tools/ar6x/ar6x.cpp
 ------------------------------------------------------------------
-Sealed on 07-10-2026
+Sealed on 08-10-2026
