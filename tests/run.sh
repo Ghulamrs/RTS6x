@@ -13,8 +13,10 @@ VMSIM=$(find_tool "${VMSIM:-}" ../VM6747-sim/vm6747.exe "$(command -v vm6747sim 
 for need in "cpp11:$CPP11" "c90:$C90" "asm6x:$ASM6X" "lnk6x:$LNK6X" "vm6747:$VM" "vm6747sim:$VMSIM"; do
     [ -n "${need#*:}" ] || { echo "run.sh: no ${need%%:*} - build it or name it"; exit 2; }
 done
-# D=d runs it all against the Debug pair, rts6xd.lib and printf6xd.lib, built at -O0.
-LIB=build/rts6x${D:-}.lib AR6X=build/ar6x.exe OUT=${OUT:-../build/RTS6x/test${D:-}}
+# D=d runs it all against the Debug pair, rts6xd.lib and printf6xd.lib, built at -O0; R=r against
+# the reference pair, rts6xr.lib and printf6xr.lib (make reference: D2's speed files as C++).
+V=${R:-}${D:-}
+LIB=build/rts6x$V.lib AR6X=build/ar6x.exe OUT=${OUT:-../build/RTS6x/test$V}
 [ -f "$LIB" ] || { echo "run.sh: no $LIB - run make first"; exit 2; }
 rm -rf "$OUT"; mkdir -p "$OUT"
 pass=0 fail=0
@@ -44,7 +46,7 @@ if [ "$st" = 82 ]; then ok "link: lnk6x with rts6x.lib, run on vm6747sim"; else 
 
 # printf6x.lib alone: the formats test at -O0 and -O2, linked with it and the stand-in entry only,
 # run on vm6747sim, and its output held to the host's for the same calls (formats.expected)
-PRINTFLIB=build/printf6x${D:-}.lib
+PRINTFLIB=build/printf6x$V.lib
 "$ASM6X" tests/link/start.s -o "$OUT/start.obj"
 for level in -O0 -O2; do
     o="$OUT/formats$level"
