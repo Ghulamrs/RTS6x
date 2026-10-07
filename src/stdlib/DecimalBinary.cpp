@@ -26,7 +26,7 @@ bool DecimalBinary::toBinary64(unsigned long long w, int e, bool negative, unsig
     union { unsigned long long u; unsigned word[2]; } wv, fv, t;
     wv.u = w;
     fv.u = fives[b];
-    unsigned c0 = powers[a].limbs[0], c1 = powers[a].limbs[1], x[4], p[7];
+    unsigned c0 = powers[a].limbs[0], c1 = powers[a].limbs[1], x[4], p[6];
     t.u = product(wv.word[0], fv.word[0]);
     x[0] = t.word[0];
     t.u = product(wv.word[0], fv.word[1]) + t.word[1];
@@ -57,13 +57,12 @@ bool DecimalBinary::toBinary64(unsigned long long w, int e, bool negative, unsig
     t.u = product(x[3], c1) + p[4] + t.word[1];
     p[4] = t.word[0];
     p[5] = t.word[1];
-    p[6] = 0;
     // S, the 64 bits from P's highest set one down; sticky, any set bit below them.
     int top = 5;
     while (p[top] == 0) top--;
     int length = top * 32 + bitLength(p[top]), from = length - 64, limb = from >> 5, shift = from & 31;
-    // p[6] stays 0, so hi needs no test (cpp11 -O2 lost the array's address in that test, 2026-10-07).
-    unsigned lo = p[limb], mid = p[limb + 1], hi = p[limb + 2];
+    // hi is past P's top limb when S starts in p[4]; that read is 0.
+    unsigned lo = p[limb], mid = p[limb + 1], hi = limb + 2 < 6 ? p[limb + 2] : 0;
     unsigned sticky = shift ? lo << (32 - shift) : 0;
     for (int i = 0; i < limb; i++) sticky |= p[i];
     union { unsigned long long u; unsigned word[2]; } s;
