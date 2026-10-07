@@ -1,4 +1,4 @@
-// Spec: none - tools/speed: sprintf of doubles in %g, %f and %e, 400 times; a checksum of the text.
+// Spec: none - tools/speed: sprintf of doubles in %g, %f and %e, 400 times; a checksum of the text, the host's in printf-float.expected (docs/TI-DIFFERENCES.md).
 #include <stdio.h>
 int main()
 {

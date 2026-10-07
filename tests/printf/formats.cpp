@@ -38,6 +38,10 @@ int main()
     printf("[%f] [%e] [%g] [%F] [%5.1f] [%-10.3e|] [%010.2f] [%+.1e] [% .2g]\n", inf, -inf, nan, inf, 9.96, 1234.5, -3.14159, 0.0, 12.0);
     printf("[%.0f] [%.0f] [%.0f] [%.1f] [%.1f] [%.20f]\n", 0.5, 1.5, 2.5, 0.25, 0.35, 0.1);
     printf("[%.17g] [%.17g] [%.17g] [%f]\n", 0.1, third, 2.2250738585072014e-308, 1e22);
+    // Past 17 significant digits the digits are still the value's own (TI's differ: docs/TI-DIFFERENCES.md).
+    const double big1 = fromBits(0x41FB0DF7u, 0x4EE02082u), big2 = fromBits(0x42CB6182u, 0xA3FE0A47u);
+    const double big3 = fromBits(0x42D2C183u, 0xBA93A034u);
+    printf("[%.6f] [%.6f] [%.6f] [%.10f] [%.20e] [%.21g]\n", big1, big2, big3, big2, big1, big3);
     printf("[%%] [%s] [%n]", (const char *)0, &n);
     printf("%d\n", n);
 

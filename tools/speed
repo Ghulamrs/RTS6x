@@ -1,7 +1,7 @@
 #!/bin/sh
 # Spec: none - M6's speed measure (D8): each tests/speed/*.cpp built once by cpp11 -O2 and linked twice,
 # against rts6x.lib and TI's rts6740_elf_eh.lib, both images run on the CCS 5.5 C6747 cycle-accurate
-# simulator on the Windows box. The two outputs must agree; the cycles are compared, rts6x over TI.
+# simulator on the Windows box. The two outputs must agree (or rts6x match a NAME.expected, the host's exact answer); the cycles are compared, rts6x over TI.
 #   tools/speed            every benchmark        ONLY=word tools/speed      those named so
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -38,7 +38,14 @@ printf '%-14s %14s %14s %7s  %s\n' benchmark rts6x TI ratio output
 for n in $NAMES; do
     a=$(field "$WORK/back/$n.rts6x.result" count); b=$(field "$WORK/back/$n.ti.result" count)
     same=agree; cmp -s "$WORK/back/$n.rts6x.stdout" "$WORK/back/$n.ti.stdout" || same=DIFFER
+    # A .expected is the host's exact answer (docs/TI-DIFFERENCES.md): rts6x is held to it, TI only reported.
+    exp="$ROOT/tests/speed/$n.expected"
+    if [ -f "$exp" ] && [ "$same" = DIFFER ]; then
+        r=WRONG; tr -d '\r' < "$WORK/back/$n.rts6x.stdout" | cmp -s - "$exp" && r=exact
+        t=wrong; tr -d '\r' < "$WORK/back/$n.ti.stdout" | cmp -s - "$exp" && t=exact
+        same="rts6x $r, TI $t"; [ "$r" = exact ] && [ "$t" = wrong ] && same="agree with .expected (TI differs, as docs/TI-DIFFERENCES.md says)"
+    fi
     ratio=-; [ -n "$a" ] && [ -n "$b" ] && ratio=$(awk "BEGIN { printf \"%.2f\", $a / $b }")
     printf '%-14s %14s %14s %7s  %s\n' "$n" "${a:--}" "${b:--}" "$ratio" "$same"
-    [ "$same" = agree ] || { tr -d '\r' < "$WORK/back/$n.rts6x.stdout"; tr -d '\r' < "$WORK/back/$n.ti.stdout"; } | sed 's/^/      /'
+    case "$same" in agree*) ;; *) false ;; esac || { tr -d '\r' < "$WORK/back/$n.rts6x.stdout"; tr -d '\r' < "$WORK/back/$n.ti.stdout"; } | sed 's/^/      /'
 done
