@@ -6,16 +6,20 @@
 
 namespace rts6x {
 
+// strtol's and strtoul's conversion (atoi's and atol's is NumberTextDecimal.h). One call from each
+// entry point and none below it: cpp11 spends about twenty cycles on a call layer.
 class NumberText {
 public:
-    static long toLong(const char *s, char **end, int base);
-    static unsigned long toUnsignedLong(const char *s, char **end, int base);
+    // strtol (isSigned 1), strtoul (0): sign applied, ERANGE and the nearest limit past the range.
+    static unsigned long convert(const unsigned char *s, char **end, int base, unsigned isSigned);
 
 private:
-    // The digits of s in base: their value, capped once it passes 32 bits, and whether a sign
-    // said negative. end is where they stopped; a null end where there was no number.
-    static unsigned long long parse(const char *s, const char **end, int base, bool &negative);
-    static int digitValue(char c);
+    // Each character's digit value, 0-35 for 0-9, a-z and A-Z; 99 for every other character.
+    static const unsigned char digit_[256];
+    // How many digits of each base always fit in 32 bits, and the largest magnitude each base may
+    // still multiply without passing them; bases 0 to 36 (and three spare bytes after safe_).
+    static const unsigned char safe_[40];
+    static const unsigned long limit_[37];
 };
 
 }  // namespace rts6x

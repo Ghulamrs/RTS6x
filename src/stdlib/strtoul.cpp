@@ -5,5 +5,5 @@
 
 extern "C" unsigned long strtoul(const char *s, char **end, int base)
 {
-    return rts6x::NumberText::toUnsignedLong(s, end, base);
+    return rts6x::NumberText::convert((const unsigned char *)s, end, base, 0);
 }

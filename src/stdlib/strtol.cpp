@@ -5,5 +5,5 @@
 
 extern "C" long strtol(const char *s, char **end, int base)
 {
-    return rts6x::NumberText::toLong(s, end, base);
+    return (long)rts6x::NumberText::convert((const unsigned char *)s, end, base, 1);
 }

@@ -1,9 +1,9 @@
 // Spec: ISO C 7.20.1.2 - atoi.
 
+#include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
-#include "NumberText.h"
+#include "../misc/ErrorNumber.h"
 
-extern "C" int atoi(const char *s)
-{
-    return (int)rts6x::NumberText::toLong(s, 0, 10);
-}
+extern "C" int atoi(const char *text)
+#include "NumberTextDecimal.h"
