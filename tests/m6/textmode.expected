@@ -1,0 +1,6 @@
+text: one
+text: two
+end 1
+disk is the text: 1, CR LF all or none: 1
+ftell at the end is the size on disk: 1
+binary on disk: 4 bytes

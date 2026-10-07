@@ -1,0 +1,26 @@
+close 0
+fgets [first 1
+]fgetc s, ungetc S, again S
+rest [econd line
+]ftell 23
+fgets 3
+, feof 0
+fgets at end null, feof 1, ferror 0
+after rewind feof 0, fscanf 2 -> first 1
+from the end 
+
+seek 6: 1, ftell 10
+1: FIRST 1
+2: second line
+3: 3
+4: appended
+fwrite 4
+fread 4: 7 -1 1048576 42
+fread at end 0, feof 1
+clearerr feof 0
+rename 0
+old gone 1
+remove 0 0
+missing 1
+tmpfile temporary 99
+bad mode 1

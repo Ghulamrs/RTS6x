@@ -70,6 +70,9 @@ for src in tests/m1/*.c tests/m1/*.cpp tests/m2/*.c tests/m2/*.cpp tests/m3/*.c 
     dir=$(dirname "$src")
     name=$(basename "$src"); name=${name%.*}
     want=$(cat "$dir/$name.status")
+    # A text file's bytes are the host's: <name>.windows.expected is TI's Windows host's answer, if it differs.
+    exp="$dir/$name.expected"
+    case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) [ -f "$dir/$name.windows.expected" ] && exp="$dir/$name.windows.expected" ;; esac
     for level in -O0 -O2; do
         o="$OUT/$(basename "$dir")-$name$level"
         case "$src" in
@@ -88,10 +91,10 @@ for src in tests/m1/*.c tests/m1/*.cpp tests/m2/*.c tests/m2/*.cpp tests/m3/*.c 
             input=/dev/null
             [ -f "$dir/$name.input" ] && input="$dir/$name.input"
             "$VMSIM" --run "$o.$model.out" < "$input" > "$o.$model.txt" 2>&1; st=$?
-            if [ "$st" = "$want" ] && diff -q "$dir/$name.expected" "$o.$model.txt" > /dev/null; then
+            if [ "$st" = "$want" ] && diff -q "$exp" "$o.$model.txt" > /dev/null; then
                 ok "$(basename "$dir") $name $level --${model}_model: output and status $st"
             else
-                bad "$(basename "$dir") $name $level --${model}_model: status $st, wanted $want" "$(diff "$dir/$name.expected" "$o.$model.txt" | head -6)"
+                bad "$(basename "$dir") $name $level --${model}_model: status $st, wanted $want" "$(diff "$exp" "$o.$model.txt" | head -6)"
             fi
         done
     done
