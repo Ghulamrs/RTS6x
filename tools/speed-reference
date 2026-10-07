@@ -1,0 +1,35 @@
+#!/bin/sh
+# Spec: none - D2's speed files against their C++ (make reference): tests/speed's division and string
+# benchmarks built once by cpp11 -O2, linked with rts6x.lib and with rts6xr.lib, run on vm6747sim -c.
+#   tools/speed-reference      fdivide and string        ONLY=word tools/speed-reference   those named so
+set -u
+cd "$(dirname "$0")/.." || exit 2
+find_tool() { for t in "$@"; do [ -n "$t" ] && [ -x "$t" ] && { echo "$t"; return; }; done; }
+CPP11=$(find_tool "${CPP11:-}" ../C++Optimize/cpp11.exe "$(command -v cpp11 2>/dev/null)")
+ASM6X=$(find_tool "${ASM6X:-}" ../ASM6x/build/asm6x.exe "$(command -v asm6x 2>/dev/null)")
+LNK6X=$(find_tool "${LNK6X:-}" ../LNK6x/build/lnk6x.exe "$(command -v lnk6x 2>/dev/null)")
+VMSIM=$(find_tool "${VMSIM:-}" ../VM6747-sim/vm6747.exe "$(command -v vm6747sim 2>/dev/null)")
+for need in "cpp11:$CPP11" "asm6x:$ASM6X" "lnk6x:$LNK6X" "vm6747sim:$VMSIM"; do
+    [ -n "${need#*:}" ] || { echo "speed-reference: no ${need%%:*} - build it or name it"; exit 2; }
+done
+for l in rts6x rts6xr; do [ -f "build/$l.lib" ] || { echo "speed-reference: no build/$l.lib"; exit 2; }; done
+OUT=${OUT:-../build/RTS6x/speed-reference}
+rm -rf "$OUT"; mkdir -p "$OUT"
+cycles() { tr -d '\r' < "$1" | sed -n 's/^CYCLES count=\([0-9]*\).*/\1/p' | head -1; }
+status=0
+printf '%-10s %14s %14s %7s  %s\n' benchmark rts6x.lib rts6xr.lib ratio output
+for n in ${ONLY:-fdivide string}; do
+    o="$OUT/$n"
+    if ! { "$CPP11" -arch tms6747 -nologo -O2 -S "tests/speed/$n.cpp" -o "$o.s" && "$ASM6X" "$o.s" -o "$o.obj"; } > "$o.log" 2>&1; then
+        echo "speed-reference: $n did not build"; status=1; continue
+    fi
+    for l in rts6x rts6xr; do
+        "$LNK6X" -mv6740 --abi=eabi --rom_model tests/link/flat.cmd "$o.obj" -l "build/$l.lib" -o "$o.$l.out" >> "$o.log" 2>&1 || status=1
+        "$VMSIM" --run -c "$o.$l.out" > "$o.$l.txt" 2> "$o.$l.err"
+    done
+    a=$(cycles "$o.rts6x.err"); b=$(cycles "$o.rts6xr.err")
+    same=agree; cmp -s "$o.rts6x.txt" "$o.rts6xr.txt" || { same=DIFFER; status=1; }
+    ratio=-; [ -n "$a" ] && [ -n "$b" ] && ratio=$(awk "BEGIN { printf \"%.2f\", $b / $a }")
+    printf '%-10s %14s %14s %7s  %s\n' "$n" "${a:--}" "${b:--}" "$ratio" "$same"
+done
+exit $status

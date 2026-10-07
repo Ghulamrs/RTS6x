@@ -4,6 +4,7 @@ rem and its .s through asm6x, the provenance check, then ar6x packs build\rts6x.
 rem printf6x.lib at -O2 for a Release build, rts6xd.lib and printf6xd.lib at -O0 with _DEBUG for a Debug one.
 rem The tools: CPP11, ASM6X named, else beside this checkout, else an installed RIDE's bin.
 rem   build.cmd           the library        build.cmd check     the library, then tests\run.sh
+rem   build.cmd reference [check]   rts6xr.lib and printf6xr.lib: the D2 speed files' C++ in their place
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 set "RIDEBIN=%ProgramFiles%\RIDE 5.0\bin"
@@ -39,14 +40,23 @@ rem The provenance check and the tests are shell scripts; Git for Windows carrie
 set "SH=%ProgramFiles%\Git\bin\sh.exe"
 if not exist "%SH%" (echo build.cmd: no sh at %SH% - the provenance check needs one & exit /b 1)
 "%SH%" tools/provenance || exit /b 1
+if /i "%~1"=="reference" (
+    if not exist "%OBJDIR%r" mkdir "%OBJDIR%r"
+    call :variant r "-O2 -DNDEBUG=1 -DRTS6X_REFERENCE=1" "%OBJDIR%r" || exit /b 1
+    if /i not "%~2"=="check" exit /b 0
+    set "R=r"
+    goto :tests
+)
 call :variant "" "-O2 -DNDEBUG=1" "%OBJDIR%" || exit /b 1
 call :variant d "-O0 -D_DEBUG=1" "%OBJDIR%d" || exit /b 1
 
 if /i not "%~1"=="check" exit /b 0
+:tests
 if "%C90%"=="" set "C90=%RIDEBIN%\c90.exe"
 if "%LNK6X%"=="" set "LNK6X=%RIDEBIN%\lnk6x.exe"
 if "%VM%"=="" set "VM=%RIDEBIN%\vm6747.exe"
 if "%VMSIM%"=="" set "VMSIM=%RIDEBIN%\vm6747sim.exe"
+if "%R%"=="r" ("%SH%" tests/run.sh & exit /b !errorlevel!)
 "%SH%" tests/run.sh || exit /b 1
 set "D=d"
 "%SH%" tests/run.sh
@@ -67,11 +77,16 @@ for /d %%d in (src\*) do (
     if exist "%%d\*.s" "%ASM6X%" "%%d\*.s" -o "%VOBJ%\%%~nxd" || exit /b 1
 )
 rem The library's members, one a line for ar6x's @list: eh-none\ is the unwinder's stand-in, printf6x.lib's alone.
+rem X-reference.cpp (D2) is empty but in the reference build r, and there X.s beside it is left out.
 if exist build\rts6x%TAG%.objs del build\rts6x%TAG%.objs
 for /r src %%f in (*.cpp *.s) do (
     set "REL=%%~dpf"
     set "REL=!REL:%CD%\src\=!"
-    if /i not "!REL!"=="eh-none\" if /i not "!REL!"=="internal\" echo %VOBJ%\!REL!%%~nf.obj>>build\rts6x%TAG%.objs
+    set "NAME=%%~nf"
+    set "KEEP=1"
+    if "!NAME:~-10!"=="-reference" if not "%TAG%"=="r" set "KEEP="
+    if "%TAG%"=="r" if /i "%%~xf"==".s" if exist "%%~dpnf-reference.cpp" set "KEEP="
+    if defined KEEP if /i not "!REL!"=="eh-none\" if /i not "!REL!"=="internal\" echo %VOBJ%\!REL!%%~nf.obj>>build\rts6x%TAG%.objs
 )
 
 build\ar6x.exe -r build\rts6x%TAG%.lib @build\rts6x%TAG%.objs || exit /b 1
@@ -80,6 +95,7 @@ rem printf6x.lib: printf, fprintf, sprintf and wprintf - printf6x.members lists 
 set "POBJS="
 for /f "usebackq delims=" %%m in ("printf6x.members") do (
     set "M=%%m"
+    if "%TAG%"=="r" if exist "!M:.s=-reference.cpp!" set "M=!M:.s=-reference.cpp!"
     set "M=!M:src/=!"
     set "M=!M:/=\!"
     set "M=!M:.cpp=.obj!"
