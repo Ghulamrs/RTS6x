@@ -206,9 +206,10 @@ stays as it is: it is the reference RTS6x's results are compared with, besides
 - **Single-threaded throughout.** `errno`, the heap, the FILE table, the caught-exception
   chain, the signal and atexit tables are plain statics; the C6747 runs one thread.
 - **One character of pushback in the scanner** (`InputSource`, as ISO C 7.19.6.2/9 allows):
-  `%x` on `0xg` takes the `x` and fails where a longer lookahead could give both back, and
-  `%f` on `1.5e` converts 1.5 with the `e` consumed - each is the longest prefix that *begins*
-  a number, which is what the standard reads, and both agree with the hosts' libraries.
+  `%x` on `0xg` takes the `0x`, finds no digit and fails, where macOS's library answers 0 and
+  gives the `x` back - two characters of lookahead, which 7.19.6.2/9 does not require; `%f` on
+  `1.5e` converts 1.5 with the `e` consumed, as the hosts do (`tests/m3/scan.c`). Recorded, not
+  mended: the fix is a second pushback slot in `InputSource` and in `Stream::unget`.
 - **Writes are unbuffered**: every `fputc` is one `C$$IO$$` trap, which is part of
   `printf-float`'s 2.08x of TI's cycles. A line-buffered stdout is the next speed work
   if any; it changes when output reaches the host beside stderr and at `exit`, so it is
