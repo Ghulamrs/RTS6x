@@ -1,0 +1,17 @@
+#!/bin/sh
+# The rule of docs/ORGANISATION.md section 4, checked: the archive defines every symbol of
+# docs/demand-2026-10-06.txt - what the compiled suites asked a run-time for. `.S1` and `.S2` are not
+# symbols (ANALYSIS 6.1, a cpp11 artefact in the measurement) and are passed over. Exit 1, each name said.
+#   tools/demand-check LIBRARY [AR6X]       (ar6x defaults to build/ar6x.exe)
+cd "$(dirname "$0")/.." || exit 2
+lib=${1:-build/rts6x.lib}; ar6x=${2:-build/ar6x.exe}
+[ -f "$lib" ] && [ -x "$ar6x" ] || { echo "demand-check: need $lib and $ar6x"; exit 2; }
+index=$("$ar6x" -t "$lib") || exit 2
+missing=0 checked=0
+while read -r name; do
+    case "$name" in ""|.S1|.S2|\#*) continue ;; esac
+    checked=$((checked + 1))
+    echo "$index" | grep -q "^symbol $name " || { echo "demand-check: $lib does not define $name"; missing=$((missing + 1)); }
+done < docs/demand-2026-10-06.txt
+[ "$missing" = 0 ] && echo "demand-check: $lib defines all $checked demanded symbols"
+[ "$missing" = 0 ]

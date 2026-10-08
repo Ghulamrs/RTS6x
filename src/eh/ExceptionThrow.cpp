@@ -27,6 +27,7 @@ bool Exception::search(unsigned pc, const UnwindContext &context)
             if (!d.holds(p)) continue;
             bool barrier = false;
             if (d.kind() == ScopeDescriptor::Specification) {
+                // Only a row allowing nothing - noexcept, throw() - exists: cpp11 refuses throw(T) (ANALYSIS 4).
                 barrier = (d.allowed() & 0x7fffffffu) == 0;
             } else if (d.kind() == ScopeDescriptor::Catch) {
                 if (d.type() == ScopeDescriptor::Terminate) Handlers::terminate();

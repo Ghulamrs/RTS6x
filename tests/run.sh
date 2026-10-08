@@ -32,6 +32,9 @@ members=$(grep -c '^member ' "$OUT/index.txt"); syms=$(grep -c '^symbol ' "$OUT/
 if [ "$members" -gt 0 ] && ! grep -q '^symbol .* ?$' "$OUT/index.txt"; then ok "ar6x index: $members member(s), $syms symbol(s)"
 else bad "ar6x index" "$(cat "$OUT/index.txt")"; fi
 
+# demand: the archive defines every symbol the compiled suites asked for (ORGANISATION 4, docs/demand-2026-10-06.txt)
+if r=$(sh tools/demand-check "$LIB" "$AR6X" 2>&1); then ok "demand: $(echo "$r" | sed 's/.*defines //')"; else bad demand "$r"; fi
+
 # layout: src/internal/rts6x.h against cpp11's and c90's headers, run on the emulator
 if "$CPP11" -arch tms6747 -nologo -Isrc/internal -S tests/layout/layout.cpp -o "$OUT/layout-cpp11.s" > "$OUT/layout-cpp11.log" 2>&1 &&
    r=$("$VM" "$OUT/layout-cpp11.s" 2>&1); then ok "layout, cpp11's headers"; else bad "layout, cpp11's headers" "$r$(cat "$OUT/layout-cpp11.log")"; fi

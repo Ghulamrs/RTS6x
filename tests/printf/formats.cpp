@@ -1,5 +1,6 @@
 // Spec: none - printf, sprintf, fprintf and wprintf over C's conversions, each line compared with
-// what the host's own library prints for the same call (clang on the Mac: formats.expected).
+// what the host's own library prints for the same call (clang on the Mac: formats.expected). %a's line
+// records macOS's choices where C leaves them open (7.19.6.1/8: the leading digit, %.2a's rounding); glibc differs.
 #include <stdio.h>
 
 #ifdef __TMS320C6X__

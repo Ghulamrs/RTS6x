@@ -2,6 +2,8 @@
 # Spec: none - M6's speed measure (D8): each tests/speed/*.cpp built once by cpp11 -O2 and linked twice,
 # against rts6x.lib and TI's rts6740_elf_eh.lib, both images run on the CCS 5.5 C6747 cycle-accurate
 # simulator on the Windows box. The two outputs must agree (or rts6x match a NAME.expected, the host's exact answer); the cycles are compared, rts6x over TI.
+# One run per image, cycle.Total of the whole program - startup, the C$$IO$$ traps and the benchmark alike -
+# with no repetition: the simulator is deterministic, and a ratio of two such counts is what the table is for.
 #   tools/speed            every benchmark        ONLY=word tools/speed      those named so
 #   PREPARE=dir tools/speed  stop with the images in dir (built on a box with no route to Windows);
 #   FROM=dir tools/speed     ship and judge what PREPARE left there

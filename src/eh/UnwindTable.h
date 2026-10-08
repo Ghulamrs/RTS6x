@@ -48,7 +48,7 @@ public:
     bool read(unsigned at, const UnwindEntry &entry);
 
     Kind kind() const { return kind_; }
-    // pc, a return address, is in the scope when it lies in (begin, end].
+    // pc, a return address, is in the scope when it lies in [begin, end).
     bool holds(unsigned pc) const { return pc >= begin_ && pc < end_; }
     // The landing pad, read from the descriptor only when asked: most are passed over.
     unsigned pad() const { return UnwindEntry::prel31(padAt_); }
