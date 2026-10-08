@@ -19,44 +19,58 @@ Microsoft's CRT), as they do for every compiler there; they are out of scope.
 | D5 | **Our own archiver, `ar6x`**, a small C++14 host program in `tools/ar6x/`, writing the SysV `ar` lnk6x reads (`/` index of big-endian offsets, `//` long names) | The host's `ar` would be borrowed code in the build; the format is small and lnk6x's `archive.cpp` already states it |
 | D6 | **One function per member**, or one tight group (the `printf` family over one formatter) | lnk6x pulls whole members; a member with many functions drags them all into every program |
 | D7 | **lnk6x unchanged** unless a test shows otherwise. Its rules are generic: the handlers it pulls by name, `.sysmem` sized from `--heap_size` when the allocator brings a `.sysmem` input section, `.cio`, `.args` | ANALYSIS 4 checked each rule; none needs a TI member to exist |
-| D9 | **Complete C++ classes, small source files, rich headers.** Each piece of the library is a class (`CioChannel`, `OutputSink`, `FormatSpec`, `Formatter`, `DecimalDigits`, ...) declared in full in its header, its members spread over small `.cpp` files; a free function only where C requires one - `printf` and the rest are `extern "C"` entry points that hand their work to the classes. No virtual functions, no objects built before `main`, no exceptions inside the library: each would pull RTTI, static construction or unwinding into every program One exception, the user's (2026-10-07): `atoi` and `atol` carry their decimal loop in-line (`src/stdlib/NumberTextDecimal.h`) with no call into a class - the class form measured 1.37x TI, the in-line one 1.21x | The user's rules for RTS6x (2026-10-06); and lnk6x pulls whole members, so small files keep programs small |
 | D8 | **Correct first, then fast.** Floating division and decimal conversion are exact (integer arithmetic on the significand) before any table- or reciprocal-based speed-up; a faster version must pass the same exhaustive or randomised tests | A wrong `printf("%g")` or `1.0/3.0` is the kind of silent difference this product exists to rule out |
+| D9 | **Complete C++ classes, small source files, rich headers.** Each piece of the library is a class (`CioChannel`, `OutputSink`, `FormatSpec`, `Formatter`, `DecimalDigits`, ...) declared in full in its header, its members spread over small `.cpp` files; a free function only where C requires one - `printf` and the rest are `extern "C"` entry points that hand their work to the classes. No virtual functions, no objects built before `main`, no exceptions inside the library: each would pull RTTI, static construction or unwinding into every program One exception, the user's (2026-10-07): `atoi` and `atol` carry their decimal loop in-line (`src/stdlib/NumberTextDecimal.h`) with no call into a class - the class form measured 1.37x TI, the in-line one 1.21x | The user's rules for RTS6x (2026-10-06); and lnk6x pulls whole members, so small files keep programs small |
 
 ## 2. The repository
 
 ```
 RTS6x/
   README.md
-  Makefile               build/rts6x.lib with cpp11, asm6x and ar6x (macOS, Linux)
-  build.cmd              the same on Windows
-  rts6x-1.0.dat          the seal, as every sibling has (tools/seal)
+  Makefile               build/rts6x.lib and printf6x.lib (-O2), rts6xd.lib and printf6xd.lib (-O0)
+  build.cmd              the same on Windows; `check` runs the tests, `reference` the D2 pair
+  printf6x.members       the sources printf6x.lib is made of
+  rts6x-1.2.dat          the seal, as every sibling has (tools/seal)
   docs/
     ANALYSIS.md            phase 1
     ORGANISATION.md        phase 2 (this file)
+    DIVISION.md, MATH.md   the exact division (D2) and the <math.h> methods and their accuracy
+    TI-DIFFERENCES.md      where TI's library answers differently, and why RTS6x does not follow it
     demand-2026-10-06.txt  the 142 symbols measured
     PROVENANCE.md          the rule of D3, and the specification list
+    HANDOVER-*.md, RTS6x-review-2026-10-08.md
   src/
-    internal/rts6x.h       private declarations and layouts (FILE, the CIO buffer, the heap)
-    boot/      startup, data initialisation, arguments, exit       (S1 ch.18, S5)
-    host/      the C$$IO$$ channel and the low-level file calls    (sim6747's host side)
-    helpers/   __c6xabi_* division, conversion, rounding           (S1 ch.8)
-    string/    <string.h>, <ctype.h>                               (S5)
-    stdlib/    <stdlib.h>: memory, conversion, sort, search, rand  (S5)
-    stdio/     FILE table, buffering, printf and scanf families    (S5, S9)
-    math/      <math.h>                                            (S5, S7)
-    misc/      setjmp, time, locale, signal, errno, assert         (S1 ch.9, S5)
-    cxx/       new/delete, guards, atexit, RTTI, dynamic_cast      (S1 ch.10, S2)
-    eh/        unwinder, personality routines, __cxa_* exceptions  (S1 ch.11, S3, S4)
+    internal/rts6x.h       private layouts (FILE, _ftable, jmp_buf, struct tm, lconv), checked by tests/layout
+    boot/      startup, .cinit and .init_array, exit's end, the version string  (S1 ch.18, S5)
+    host/      the C$$IO$$ channel and the low-level file calls              (sim6747's host side)
+    helpers/   __c6xabi_* division, conversion, rounding                      (S1 ch.8)
+    string/    <string.h>                                                     (S5)
+    ctype/     <ctype.h>                                                      (S5)
+    stdlib/    <stdlib.h>: memory, conversion (exact strtod), sort, search, rand (S5)
+    stdio/     FILE table, streams, printf and scanf families                 (S5, S9)
+    math/      <math.h>                                                       (S5, S7)
+    exit/      exit, atexit, abort, __cxa_atexit                              (S5, S2)
+    time/      <time.h>: the calendar, strftime                               (S5)
+    locale/    setlocale, localeconv                                          (S5)
+    misc/      setjmp, signal, errno, getenv, strerror, assert's abort_msg    (S1 ch.9, S5)
+    cxx/       new/delete, guards, RTTI, dynamic_cast                         (S1 ch.10, S2)
+    eh/        unwinder, personality routines, __cxa_* exceptions             (S1 ch.11, S3, S4)
+    eh-none/   the personality stand-in printf6x.lib carries instead of eh/
   tools/
     ar6x/        the archiver (C++14, built like ASM6x)
-    demand.py    the measurement of ANALYSIS 3
+    demand.py    the measurement of ANALYSIS 3; demand-check, the rule of section 4
     provenance   the check of D3
+    referee, speed, speed-reference   TI's simulator as the judge of output and of cycles
+    gen-typeinfo.py, math-tables.py, powers-of-five.py   the generated sources' generators
     seal, seal.json
   tests/
-    run.sh       every test below, against build/rts6x.lib only
-    cases/       small programs with .expected, one or more per module
-    helpers/     register-limit and exhaustive arithmetic tests
+    run.sh       every test below, against one pair of libraries (D=d the Debug pair, R=r the reference)
+    m1 .. m6/    programs, one per subject, with .expected (the host's output) and .status
+    helpers/     the register-limit probe and the exhaustive and random arithmetic tests
+    printf/      the formats test printf6x.lib alone is held to
     layout/      the header layout test of D4
+    link/        the probe program, the start-up stand-in and the flat link map
+    speed/       the benchmarks tools/speed times
 ```
 
 ## 3. The modules, symbol by symbol
@@ -106,12 +120,16 @@ vtables (`__class_type_info __si_class_type_info __vmi_class_type_info
 __pointer_type_info __enum_type_info` and the rest of S2 2.9.5), the `_ZTI`
 objects of every fundamental type and pointer to one, `__dynamic_cast`.
 
-**eh** - `__c6xabi_unwind_cpp_pr0 pr1 pr2 pr3 pr4`, `_Unwind_RaiseException
-_Unwind_Resume _Unwind_Complete _Unwind_DeleteException` and the virtual register
-set (asm for the capture and install), `__cxa_allocate_exception
-__cxa_free_exception __cxa_throw __cxa_rethrow __cxa_begin_catch __cxa_end_catch
-__cxa_begin_cleanup __cxa_end_cleanup __cxa_type_match __cxa_call_unexpected`,
-`std::terminate`, `std::unexpected` and their setters.
+**eh** - `__c6xabi_unwind_cpp_pr0 pr1 pr2 pr3 pr4` and the virtual register set
+(asm for the capture and install), `__cxa_allocate_exception __cxa_free_exception
+__cxa_throw __cxa_rethrow __cxa_begin_catch __cxa_end_catch __cxa_end_cleanup
+__cxa_get_exception_ptr __cxa_call_unexpected`, `std::terminate`, `std::unexpected`
+and their setters. Not defined, on purpose: the EHABI's `_Unwind_RaiseException`,
+`_Unwind_Resume`, `_Unwind_Complete`, `_Unwind_DeleteException`, `__cxa_begin_cleanup`
+and `__cxa_type_match` - cpp11 and c90 emit a call to none of them (the throw, rethrow and
+end-cleanup entries above do that work inside RTS6x, `ExceptionThrow.cpp`), and a symbol no
+compiler of ours names is a promise with no caller to test it; likewise `__cxa_bad_cast`
+and `__cxa_bad_typeid`, which cpp11 cannot reach (ANALYSIS 4).
 
 ## 4. Building
 
@@ -123,14 +141,16 @@ are found beside the checkout (`../C++Optimize/cpp11.exe`, `../ASM6x/build`,
 `tools/ar6x`) or named by `CPP11=`, `ASM6X=`, `AR6X=`.
 
 Two rules the build itself checks: `tools/provenance` passes (D3), and the archive
-defines every symbol of `demand-2026-10-06.txt` that the current milestone covers.
+defines every symbol of `demand-2026-10-06.txt` - `tools/demand-check`, run by
+`tests/run.sh` against the pair under test.
 
 ## 5. Testing
 
 | test | what it proves | runs on |
 | --- | --- | --- |
-| `tests/cases` | each module's behaviour: a program per module with its `.expected` from clang on the Mac, as cpp11's own cases are | sim6747, linked with rts6x.lib only |
-| `tests/helpers` registers | `divi`, `divu`, `remi`, `remu`, `divremi`, `divremu` change no register outside Table 8-9: run under `sim6747 --trace`, compare the register file before and after each call | sim6747 |
+| `tests/m1` .. `m6` | each subject's behaviour: programs with their `.expected` and `.status` from the host's own C library (clang on the Mac), built at -O0 and -O2, linked under both of lnk6x's models | sim6747, linked with rts6x.lib only |
+| `tests/printf` | printf6x.lib alone: every C conversion, held to the host's output | sim6747 |
+| `tests/helpers` registers | `divi`, `divu`, `remi`, `remu`, `divremi`, `divremu` change no register outside Table 8-9: a probe (`probe.s`) patterns every register, calls the helper, and copies the register file out; the program names each register out of place | sim6747 |
 | `tests/helpers` arithmetic | division, remainder and conversions against the host's own arithmetic, at the edges (0, ±1, INT_MIN, powers of two, NaN, infinities, subnormals) and on random operands | sim6747 |
 | `tests/layout` | the layouts of D4 agree between RTS6x and both compilers' headers | compile time |
 | the two **tms6747 suites** | the acceptance: cpp11's (357 cases, four levels) and c90's (405) link **rts6x.lib only** and pass both legs | vm6747 + sim6747 |

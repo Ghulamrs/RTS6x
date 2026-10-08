@@ -125,12 +125,35 @@ These are fixed by tools we already have, and RTS6x must meet them as they stand
   it was at the throwing call; cpp11's pad stores A4 and B4 and dispatches on B4.
   What A4 holds (the control block, S4) is what cpp11 passes back to
   `__cxa_begin_catch` and `__cxa_end_cleanup`.
+- **The frame the unwinder walks** (`UnwindEntry::unwind`): every function cpp11 or c90
+  emits that calls anything stores the caller's A15 in the word at the caller's B15,
+  makes that word its frame pointer, and saves B3 below it with the other callee-saved
+  registers in TI's pop order (`Tms6747::savedRegs`, `unwindWord`) - so a frame between
+  a throw and its catch always has A15 (bit 12) and B3 (bit 5) in its pop mask, and a
+  PR2 frame is exactly `MV FP,SP; POP mask; RETURN`, the same mask as byte codes. A
+  function that calls nothing saves neither and gets no index entry, and it can never
+  be between a throw and a catch. The unwinder refuses any other shape with
+  `std::terminate`, which is the contract made loud rather than a wrong frame walked;
+  `tests/m5/frames.cpp` puts every frame shape cpp11 writes between a throw and its
+  handler, at -O0 and -O2 (-Os shares -O2's frame code). A compiler that emits another
+  frame changes `UnwindEntry.cpp` in the same round.
+- **What cpp11 cannot emit, so RTS6x does not define**: `dynamic_cast` to a reference
+  is refused by name (`ParserExprNew.cpp`, `dynamicCast`), and `typeid` of a
+  polymorphic glvalue reads the vptr with no null test, so neither `__cxa_bad_cast` nor
+  `__cxa_bad_typeid` is ever called; a dynamic exception specification `throw(T)` is
+  refused (`ParserConst.cpp`), so the only specification row is a `noexcept`/`throw()`
+  one allowing nothing, and that is the only barrier `Exception::search` tests -
+  `std::unexpected` is reached through `__cxa_call_unexpected` and never with a list to
+  check. Each becomes work here the day cpp11 emits it.
 - RTTI records cpp11 emits follow S2 2.9.5; `__dynamic_cast` and catch matching
   read them.
 - Header coupling: `lib/stdio.h` declares `FILE` as a 24-byte record and
   `stdin`/`stdout`/`stderr` as `&_ftable[0..2]` (S1 9.18 requires `_ftable`). The
   layout is ours to keep or change, header and runtime together. `errno` must be
-  `*__c6xabi_errno_addr()` (S1 9.5).
+  `*__c6xabi_errno_addr()` (S1 9.5). cpp11's `lib/stdarg.h` declares
+  `vfprintf(void *, const char *, va_list)` - the stream as `void *`, `FILE` not being
+  in scope there - and RTS6x defines it so (`vfprintf.cpp`); the prototype is the
+  header's to mend, in C++Optimize, not RTS6x's.
 
 **The VM6747 emulator** runs assembly with a native runtime and never links. It
 stays as it is: it is the reference RTS6x's results are compared with, besides
@@ -142,7 +165,12 @@ stays as it is: it is the reference RTS6x's results are compared with, besides
   `divrem` pair may change only the registers listed in Table 8-9. cpp11 may rely
   on it, so these are hand-written in assembly and their register use is checked
   by a test, not by inspection. (D2 was exactly a caller trusting A5 across
-  `remi`; the table allows `remi` to change A5.)
+  `remi`; the table allows `remi` to change A5.) The per-helper sets in `divi.s`,
+  `remi.s` and `divremi.s` and in `tests/helpers/registers.cpp` were taken from
+  Table 8-9 when they were written and agree with each other; the review of
+  2026-10-08 could not re-read the table itself, so a re-reading against SPRAB89B is
+  worth one pass. The 64-bit helpers (`WideDivision.cpp`) are compiled C++ with no
+  register limit: cpp11 calls them as ordinary functions and saves what it needs.
 - **Guards (S1 10.4)**: the first byte of a 32-bit word; non-zero is "done".
 - **Constructors return `this` (S1 10.5)**; array new/delete helpers take
   constructors returning `void *`.
@@ -173,7 +201,20 @@ stays as it is: it is the reference RTS6x's results are compared with, besides
    specifications and from our tools' own descriptions, and once RTS6x runs, those
    comments can cite RTS6x instead.
 
-## 7. Size of the work, roughly in the order of phase 3
+## 7. Behaviour the review of 2026-10-08 recorded, and that stands
+
+- **Single-threaded throughout.** `errno`, the heap, the FILE table, the caught-exception
+  chain, the signal and atexit tables are plain statics; the C6747 runs one thread.
+- **One character of pushback in the scanner** (`InputSource`, as ISO C 7.19.6.2/9 allows):
+  `%x` on `0xg` takes the `x` and fails where a longer lookahead could give both back, and
+  `%f` on `1.5e` converts 1.5 with the `e` consumed - each is the longest prefix that *begins*
+  a number, which is what the standard reads, and both agree with the hosts' libraries.
+- **Writes are unbuffered**: every `fputc` is one `C$$IO$$` trap, which is part of
+  `printf-float`'s 2.08x of TI's cycles. A line-buffered stdout is the next speed work
+  if any; it changes when output reaches the host beside stderr and at `exit`, so it is
+  a round of its own, not a fix.
+
+## 8. Size of the work, roughly in the order of phase 3
 
 | part | contents | sizing |
 | --- | --- | --- |
