@@ -38,6 +38,14 @@ bool readFile(const std::string &path, std::vector<u8> &out)
 u32 le32(const u8 *p) { return p[0] | (p[1] << 8) | (p[2] << 16) | (u32(p[3]) << 24); }
 u32 le16(const u8 *p) { return p[0] | (p[1] << 8); }
 
+// The length of s up to its NUL or to most bytes, whichever comes first (strnlen is POSIX, not ISO C++).
+size_t boundedLength(const char *s, size_t most)
+{
+    size_t n = 0;
+    while (n < most && s[n]) n++;
+    return n;
+}
+
 // The symbols an object defines for others: every GLOBAL or WEAK symbol that is not undefined,
 // in symbol-table order. A symbol of type FILE or SECTION is never one of them.
 bool definedSymbols(const std::vector<u8> &d, std::vector<std::string> &out, std::vector<bool> &weak, std::string &why)
@@ -60,7 +68,7 @@ bool definedSymbols(const std::vector<u8> &d, std::vector<std::string> &out, std
             if (shndx == 0 || (bind != 1 && bind != 2) || type == 3 || type == 4) continue;
             if (name >= strsize) { why = "a symbol name past its table"; return false; }
             const char *p = reinterpret_cast<const char *>(&d[stroff + name]);
-            out.push_back(std::string(p, strnlen(p, strsize - name)));
+            out.push_back(std::string(p, boundedLength(p, strsize - name)));
             weak.push_back(bind == 2);
         }
     }

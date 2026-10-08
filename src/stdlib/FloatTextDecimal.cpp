@@ -124,7 +124,7 @@ unsigned long long FloatText::scale(const FloatFormat &format, bool negative, Bi
         }
         bits = FloatPacker::pack(format, negative, -k, q, !d.zero() || sticky);
     }
-    // Overflow, or a result below the normal range: a decimal one is never exact there.
+    // Overflow, or a subnormal result: 7.20.1.3/10 lets ERANGE say underflow whether or not the value was exact.
     unsigned long long magnitude = bits & ~format.signBit();
     if (magnitude < (1ull << format.fractionBits()) || magnitude == format.infinity(false)) range = true;
     return bits;

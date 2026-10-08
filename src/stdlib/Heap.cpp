@@ -12,8 +12,11 @@ bool Heap::started_;
 void Heap::start()
 {
     size_t base = ((size_t)__rts6x_heap + 7) & ~(size_t)7;
-    size_t size = ((size_t)__TI_SYSMEM_SIZE - (base - (size_t)__rts6x_heap)) & ~(size_t)7;
+    size_t slack = base - (size_t)__rts6x_heap;
     started_ = true;
+    // A .sysmem smaller than its own alignment slack holds no block; the difference must not wrap.
+    if ((size_t)__TI_SYSMEM_SIZE < slack) return;
+    size_t size = ((size_t)__TI_SYSMEM_SIZE - slack) & ~(size_t)7;
     if (size < Smallest) return;
     free_ = reinterpret_cast<Block *>(base);
     free_->size = size;
