@@ -10,6 +10,8 @@ int main(void)
     char line[64];
     int c, n, values[4], back[4] = { 0, 0, 0, 0 };
     long where;
+    const char *got;
+    int u, g;
 
     f = fopen("rts6x-m3-a.txt", "w");
     if (!f) { printf("no file\n"); return 1; }
@@ -22,20 +24,28 @@ int main(void)
     f = fopen("rts6x-m3-a.txt", "r");
     printf("fgets [%s]", fgets(line, sizeof line, f));
     c = fgetc(f);
-    printf("fgetc %c, ungetc %c, again %c\n", c, ungetc('S', f), fgetc(f));
+    u = ungetc('S', f);
+    g = fgetc(f);
+    printf("fgetc %c, ungetc %c, again %c\n", c, u, g);
     fgets(line, sizeof line, f);
     printf("rest [%s]", line);
     where = ftell(f);
     printf("ftell %ld\n", where);
-    printf("fgets %s, feof %d\n", fgets(line, sizeof line, f) ? line : "", feof(f) != 0);
-    printf("fgets at end %s, feof %d, ferror %d\n", fgets(line, sizeof line, f) ? "line" : "null", feof(f) != 0, ferror(f) != 0);
+    got = fgets(line, sizeof line, f) ? line : "";
+    printf("fgets %s, feof %d\n", got, feof(f) != 0);
+    got = fgets(line, sizeof line, f) ? "line" : "null";
+    printf("fgets at end %s, feof %d, ferror %d\n", got, feof(f) != 0, ferror(f) != 0);
     rewind(f);
-    printf("after rewind feof %d, fscanf %d", feof(f) != 0, fscanf(f, "%s %d", line, &n));
+    u = feof(f) != 0;
+    g = fscanf(f, "%s %d", line, &n);
+    printf("after rewind feof %d, fscanf %d", u, g);
     printf(" -> %s %d\n", line, n);
     fseek(f, -2, SEEK_END);
     printf("from the end %c\n", fgetc(f));
     fseek(f, 6, SEEK_SET);
-    printf("seek 6: %c, ftell %ld\n", fgetc(f), ftell(f));
+    g = fgetc(f);
+    where = ftell(f);
+    printf("seek 6: %c, ftell %ld\n", g, where);
     fclose(f);
 
     f = fopen("rts6x-m3-a.txt", "a");
@@ -55,7 +65,8 @@ int main(void)
     rewind(f);
     printf("fread %d:", (int)fread(back, sizeof back[0], 4, f));
     for (n = 0; n < 4; n++) printf(" %d", back[n]);
-    printf("\nfread at end %d, feof %d\n", (int)fread(back, 1, 1, f), feof(f) != 0);
+    g = (int)fread(back, 1, 1, f);
+    printf("\nfread at end %d, feof %d\n", g, feof(f) != 0);
     clearerr(f);
     printf("clearerr feof %d\n", feof(f) != 0);
     fclose(f);

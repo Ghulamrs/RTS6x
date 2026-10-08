@@ -18,6 +18,7 @@ int main(void)
     static const long moments[] = { 0L, 68169600L, 951782400L, 1009843199L, 1700000000L, -86400L, 2147483647L };
     struct tm t;
     char small[4];
+    long made;
     int i;
     time_t now;
     for (i = 0; i < (int)(sizeof moments / sizeof moments[0]); i++) {
@@ -30,7 +31,8 @@ int main(void)
     }
     memset(&t, 0, sizeof t);
     t.tm_year = 99; t.tm_mon = 13; t.tm_mday = 31; t.tm_hour = 25; t.tm_min = -5; t.tm_sec = 70;
-    printf("mktime %ld -> %d-%d-%d %d:%d:%d wday %d yday %d\n", (long)mktime(&t), t.tm_year, t.tm_mon,
+    made = (long)mktime(&t);
+    printf("mktime %ld -> %d-%d-%d %d:%d:%d wday %d yday %d\n", made, t.tm_year, t.tm_mon,
            t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, t.tm_wday, t.tm_yday);
     printf("too small %d\n", (int)strftime(small, sizeof small, "%A", &t));
     now = time(0);

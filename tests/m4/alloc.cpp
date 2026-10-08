@@ -27,7 +27,9 @@ int main()
     printf("nothrow %d\n", q != 0);
     delete[] q;
     std::new_handler old = std::set_new_handler(handler);
-    printf("handlers %d %d %d\n", old == 0, std::get_new_handler() == handler, std::set_new_handler(0) == handler);
+    bool current = std::get_new_handler() == handler;
+    bool previous = std::set_new_handler(0) == handler;
+    printf("handlers %d %d %d\n", old == 0, current, previous);
     char *blocks[50];
     for (int i = 0; i < 50; i++) blocks[i] = new char[1000 + i];
     for (int i = 0; i < 50; i += 2) delete[] blocks[i];

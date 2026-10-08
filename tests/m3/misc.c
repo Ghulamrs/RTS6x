@@ -13,14 +13,19 @@ static void handler(int sig) { seen = sig; }
 
 int main(void)
 {
+    int r;
+    char was[32], set[32], numeric[32];
     struct lconv *lc;
-    printf("setlocale %s %s %s %d\n", setlocale(LC_ALL, 0), setlocale(LC_ALL, "C"), setlocale(LC_NUMERIC, ""),
-           setlocale(LC_ALL, "xx_YY") == 0);
+    strcpy(was, setlocale(LC_ALL, 0));
+    strcpy(set, setlocale(LC_ALL, "C"));
+    strcpy(numeric, setlocale(LC_NUMERIC, ""));
+    printf("setlocale %s %s %s %d\n", was, set, numeric, setlocale(LC_ALL, "xx_YY") == 0);
     lc = localeconv();
     printf("lconv [%s] [%s] %d %d\n", lc->decimal_point, lc->thousands_sep, lc->frac_digits == CHAR_MAX,
            lc->n_sign_posn == CHAR_MAX);
     printf("signal %d\n", signal(SIGINT, handler) == SIG_DFL);
-    printf("raise %d, seen %d\n", raise(SIGINT), (int)seen);
+    r = raise(SIGINT);
+    printf("raise %d, seen %d\n", r, (int)seen);
     printf("reset %d\n", signal(SIGINT, SIG_IGN) == SIG_DFL);
     printf("ignored %d\n", raise(SIGINT));
     printf("getenv %d\n", getenv("RTS6X_SURELY_UNSET_NAME") == 0);

@@ -19,7 +19,9 @@ int main()
     second();
     first();
     for (int i = 0; i < 3; i++) printf("ids %d %d\n", first().id, second().id);
-    printf("counted %d %d\n", counted(4), counted(9));
+    int first = counted(4);
+    int second = counted(9);
+    printf("counted %d %d\n", first, second);
     printf("end of main\n");
     return 0;
 }

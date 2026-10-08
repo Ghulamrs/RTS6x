@@ -6,9 +6,12 @@
 int main(void)
 {
     FILE *f;
-    int c;
+    int c, w, u, e;
+    long at;
     printf("fprintf to stdin %d\n", fprintf(stdin, "x%d", 1) < 0);
-    printf("fputs %d, fputc %d, ferror %d\n", fputs("abc", stdin) == EOF, fputc('a', stdin) == EOF, ferror(stdin) != 0);
+    w = fputs("abc", stdin) == EOF;
+    u = fputc('a', stdin) == EOF;
+    printf("fputs %d, fputc %d, ferror %d\n", w, u, ferror(stdin) != 0);
     clearerr(stdin);
     printf("cleared %d\n", ferror(stdin));
     printf("empty mode %d\n", fopen("rts6x-m3-r.txt", "") == 0);
@@ -19,8 +22,11 @@ int main(void)
     c = fgetc(f); c = fgetc(f);
     printf("read %c, ", c);
     printf("bad seek %d, ", fseek(f, -5L, SEEK_SET));
-    printf("then %c, ftell %ld\n", fgetc(f), ftell(f));
-    printf("bad whence %d, then %c\n", fseek(f, 0L, 7), fgetc(f));
+    c = fgetc(f);
+    at = ftell(f);
+    printf("then %c, ftell %ld\n", c, at);
+    e = fseek(f, 0L, 7);
+    printf("bad whence %d, then %c\n", e, fgetc(f));
     fclose(f);
     remove("rts6x-m3-r.txt");
     return 0;
