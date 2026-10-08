@@ -1,7 +1,7 @@
-©2026 G. R. Akhtar - RTS6x 1.1, a TMS320C6747 run-time support library
-Release seal, version 1.1, sealed 08-10-2026
+©2026 G. R. Akhtar - RTS6x 1.2, a TMS320C6747 run-time support library
+Release seal, version 1.2, sealed 08-10-2026
 Written by tools/seal; check it with `tools/seal check`.
-CRC32  size  file - 378 files, seal 3346A221
+CRC32  size  file - 378 files, seal 040CE785
 ------------------------------------------------------------------
 D357B9A5      1528  src/boot/Decompressor.cpp
 9AAA9186      1287  src/boot/Decompressor.h
@@ -11,7 +11,7 @@ F6B4D38C      1524  src/boot/Startup.h
 53A08E3E       287  src/boot/__TI_decompress_rle24.cpp
 958C983C       272  src/boot/__TI_zero_init.cpp
 0AE90279      1195  src/boot/boot.s
-0CE72F1F       222  src/boot/version.s
+B6B22B08       222  src/boot/version.s
 1A3143AB      1235  src/ctype/CharacterClass.h
 DF0AF9E7       188  src/ctype/isalnum.cpp
 A59B9093       188  src/ctype/isalpha.cpp
@@ -58,7 +58,7 @@ AC4EEFDB       240  src/cxx/operator_new_nothrow.cpp
 C36EA672      2193  src/eh/Exception.h
 EBFB02BC       790  src/eh/ExceptionCatch.cpp
 D33815CA      2987  src/eh/ExceptionMatch.cpp
-887FEA9F      3816  src/eh/ExceptionThrow.cpp
+8AD16B3A      3930  src/eh/ExceptionThrow.cpp
 EE7F0FDE       957  src/eh/Handlers.cpp
 5659F08E      1298  src/eh/Handlers.h
 659FBBCA       299  src/eh/UnwindContext.cpp
@@ -66,7 +66,7 @@ B25086A3      1180  src/eh/UnwindContext.h
 0F7257DB      4129  src/eh/UnwindEntry.cpp
 0BB48CDC      3283  src/eh/UnwindIndex.cpp
 C7433924      1607  src/eh/UnwindIndex.h
-AF94BA15      2794  src/eh/UnwindTable.h
+FED05EFD      2794  src/eh/UnwindTable.h
 9B64B04C       510  src/eh/__cxa_allocate_exception.cpp
 9C15B9DE       342  src/eh/__cxa_begin_catch.cpp
 8986FAD0       329  src/eh/__cxa_call_unexpected.cpp
@@ -82,8 +82,8 @@ B531C43C       191  src/eh/get_terminate.cpp
 9D375262       130  src/eh/terminate.cpp
 5EDC3E61       229  src/eh/uncaught_exception.cpp
 937CC925       131  src/eh/unexpected.cpp
-DC89A967      1179  src/exit/Termination.cpp
-CA3F44AD      1195  src/exit/Termination.h
+C6C3C44C      1524  src/exit/Termination.cpp
+C379EBD1      1586  src/exit/Termination.h
 B1E470E3       393  src/exit/__cxa_atexit.cpp
 B6FB341F       185  src/exit/abort.cpp
 37ECDC78       214  src/exit/atexit.cpp
@@ -224,7 +224,7 @@ F35A90CE       155  src/math/tanh.cpp
 A72EAEA6       299  src/math/trunc.cpp
 219F3746       116  src/misc/ErrorNumber.cpp
 1DA063C7       420  src/misc/ErrorNumber.h
-D29576D7       925  src/misc/SignalTable.cpp
+93F0A066       945  src/misc/SignalTable.cpp
 9254BBD2       558  src/misc/SignalTable.h
 B15095A6       386  src/misc/__c6xabi_abort_msg.cpp
 13EB29B3       185  src/misc/__c6xabi_errno_addr.cpp
@@ -247,8 +247,8 @@ BF23AE07      6062  src/stdio/FormatFloat.cpp
 2572E3CA      1192  src/stdio/InputSource.h
 038D5EF9      2014  src/stdio/IntegerDigits.cpp
 5EDE97A1       793  src/stdio/IntegerDigits.h
-35CA6345      2020  src/stdio/OutputSink.cpp
-AA86FC50      1689  src/stdio/OutputSink.h
+BDFDD322      2021  src/stdio/OutputSink.cpp
+6312F28C      1752  src/stdio/OutputSink.h
 AE1429A5      2213  src/stdio/ScanFloatText.cpp
 21C11F1A      3035  src/stdio/ScanNumber.cpp
 AB13E0D2      2694  src/stdio/ScanText.cpp
@@ -256,8 +256,8 @@ AB13E0D2      2694  src/stdio/ScanText.cpp
 FE5EAA00      2279  src/stdio/Scanner.h
 C59B6F35      2779  src/stdio/Stream.h
 4810914D      1609  src/stdio/StreamFill.cpp
-C8B5658E      2689  src/stdio/StreamOpen.cpp
-2C0B7DDA       988  src/stdio/StreamPosition.cpp
+579643EA      3092  src/stdio/StreamOpen.cpp
+45F782B4      1078  src/stdio/StreamPosition.cpp
 863BF8C7      2335  src/stdio/StreamRead.cpp
 9EF6308A       765  src/stdio/StreamWrite.cpp
 E4FF7A7D       169  src/stdio/clearerr.cpp
@@ -295,7 +295,7 @@ AA4D78CE       327  src/stdio/scanf.cpp
 B3FFA662       487  src/stdio/snprintf.cpp
 D979D25A       412  src/stdio/sprintf.cpp
 3686EA96       373  src/stdio/sscanf.cpp
-49CF5899       961  src/stdio/tmpfile.cpp
+90922E77       638  src/stdio/tmpfile.cpp
 0FA8467D       201  src/stdio/ungetc.cpp
 09E41277       507  src/stdio/vfprintf.cpp
 9AAE802D       392  src/stdio/vprintf.cpp
@@ -307,11 +307,11 @@ C75E7EA3      3786  src/stdlib/DecimalBinary.cpp
 FCD84972      1087  src/stdlib/DecimalBinary.h
 0230C8F5      2764  src/stdlib/FloatText.cpp
 A8B75A83      2574  src/stdlib/FloatText.h
-E0B1ED51      4936  src/stdlib/FloatTextDecimal.cpp
+980D1304      4961  src/stdlib/FloatTextDecimal.cpp
 7760367D      2101  src/stdlib/FloatTextHex.cpp
 84C0095F      1646  src/stdlib/FloatTextQuick.cpp
 466C72EF      1950  src/stdlib/FloatTextShort.cpp
-1AF78E1A      2497  src/stdlib/Heap.cpp
+5525320D      2671  src/stdlib/Heap.cpp
 2448F000      1372  src/stdlib/Heap.h
 466F8DAA      2479  src/stdlib/NumberText.cpp
 9D713112      1208  src/stdlib/NumberText.h
@@ -367,7 +367,7 @@ F1E05046       183  src/string/strpbrk.cpp
 EC7E6701       179  src/string/strspn.cpp
 69D2DF72       180  src/string/strstr.cpp
 FDA68A32       187  src/string/strtok.cpp
-D7861D89      2302  src/time/Calendar.cpp
+14B00A7A      2434  src/time/Calendar.cpp
 8BBADDA8      1395  src/time/Calendar.h
 8FB74A7F      4442  src/time/TimeFormatter.cpp
 1596B6C3      1085  src/time/TimeFormatter.h
@@ -380,6 +380,6 @@ E925D82B       191  src/time/difftime.cpp
 58AB505C       204  src/time/mktime.cpp
 80C9D895       336  src/time/strftime.cpp
 A6A1B70E       282  src/time/time.cpp
-FD248211     11768  tools/ar6x/ar6x.cpp
+B889F910     12000  tools/ar6x/ar6x.cpp
 ------------------------------------------------------------------
 Sealed on 08-10-2026
