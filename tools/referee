@@ -6,8 +6,21 @@
 #   KEEP=1 tools/referee       the suites' images as they are, not rebuilt; ONLY=word, the images named so
 #   PREPARE=dir tools/referee  stop with the images and sim6747's answers in dir (a box with no route
 #   to Windows builds and runs them); FROM=dir tools/referee  ship and judge what PREPARE left there
+#   tools/referee --record [file.md]   also write the verdict into the tree, default docs/REFEREE-<date>.md:
+#   the heads of the four trees, the counts, and one row per image - id, verdict, TI's cycles and status
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
+RECORD=""; ARGS=""
+while [ $# -gt 0 ]; do
+    case $1 in
+    --record) RECORD="$ROOT/docs/REFEREE-$(date +%Y-%m-%d).md"
+              case ${2:-} in *.md) RECORD=$2; shift ;; esac ;;
+    *) ARGS="$ARGS $1" ;;
+    esac
+    shift
+done
+# shellcheck disable=SC2086 - the remaining words are the suite's name, if one was given
+set -- $ARGS
 CPP=$(cd "$ROOT/../C++Optimize" && pwd); C90=$(cd "$ROOT/../VM6747/Compiler-Ci" && pwd)
 SIM6747=${SIM6747:-$ROOT/../SIM6747/sim6747.exe}
 WINDOWS=${CXX1_WINDOWS:-windows}; REMOTE='C:\cxx1\referee'
@@ -55,14 +68,42 @@ agree=0; differ=0; norun=0
 for o in "$WORK/ref"/*.out; do
     id=$(basename "$o" .out); r="$WORK/back/$id.result"
     count=$(field "$r" count 2>/dev/null); pc=$(field "$r" pc 2>/dev/null); ex=$(field "$r" exit 2>/dev/null); a4=$(field "$r" a4 2>/dev/null)
-    if [ -z "$count" ]; then echo "NO RUN  $id: $(tr -d '\r' < "$r" 2>/dev/null | tr '\n' ' ' | sed 's/^BOX [^ ]* //')"; norun=$((norun+1)); continue; fi
+    if [ -z "$count" ]; then echo "NO RUN  $id: $(tr -d '\r' < "$r" 2>/dev/null | tr '\n' ' ' | sed 's/^BOX [^ ]* //')"; norun=$((norun+1))
+        echo "| $id | did not run | - | - |" >> "$WORK/rows"; continue; fi
     tr -d '\r' < "$WORK/back/$id.stdout" 2>/dev/null > "$WORK/$id.ti" || : > "$WORK/$id.ti"
     want=$(cat "$WORK/vm/$id.rc"); got=$(( ${a4:-0} & 255 ))
     if [ "$pc" = "$ex" ] && [ "$got" = "$want" ] && cmp -s "$WORK/$id.ti" "$WORK/vm/$id.out"; then agree=$((agree+1))
+        echo "| $id | agree | $count | $got |" >> "$WORK/rows"
     else
         differ=$((differ+1)); echo "DIFFER  $id: TI status $got pc $pc, sim6747 status $want"
         diff "$WORK/vm/$id.out" "$WORK/$id.ti" | head -6 | sed 's/^/        /'
+        echo "| $id | DIFFER: TI pc $pc, sim6747 status $want | $count | $got |" >> "$WORK/rows"
     fi
 done
-echo "referee: $agree agree, $differ differ, $norun did not run - of $N, in $(( $(date +%s) - T0 ))s"
+SUMMARY="referee: $agree agree, $differ differ, $norun did not run - of $N, in $(( $(date +%s) - T0 ))s"
+echo "$SUMMARY"
+if [ -n "$RECORD" ]; then
+    treehead() { git -C "$1" log -1 --format='%h %ad' --date=short 2>/dev/null || echo unknown; }
+    {
+        echo "# RTS6x's referee, $(date '+%Y-%m-%d %H:%M %Z')"
+        echo
+        echo "Written by \`tools/referee --record\`: the images the tms6747 suites link against rts6x.lib"
+        echo "($WHICH), run on TI's CCS 5.5 C6747 cycle-accurate simulator on the Windows box, their output"
+        echo "and exit status against sim6747's. \`p.\` is cpp11's suite, \`c.\` is c90's."
+        echo
+        echo "| tree | head |"
+        echo "| --- | --- |"
+        echo "| RTS6x | $(treehead "$ROOT") |"
+        echo "| C++Optimize (cpp11) | $(treehead "$CPP") |"
+        echo "| VM6747/Compiler-Ci (c90) | $(treehead "$C90") |"
+        echo "| SIM6747 | $(treehead "$(dirname "$SIM6747")") |"
+        echo
+        echo "**$SUMMARY.**"
+        echo
+        echo "| image | verdict | TI cycles | TI status |"
+        echo "| --- | --- | ---: | ---: |"
+        sort "$WORK/rows" 2>/dev/null
+    } > "$RECORD"
+    echo "referee: recorded in $RECORD"
+fi
 [ $differ -eq 0 ] && [ $norun -eq 0 ]
