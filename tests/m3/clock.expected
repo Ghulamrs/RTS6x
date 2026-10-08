@@ -27,5 +27,5 @@ asctime Wed Dec 31 00:00:00 1969
 AM 03:14:07 AM 03:14 07 	03:14:07 2 03 03 2 03 01/19/38 03:14:07 38 2038 UTC %]
 asctime Tue Jan 19 03:14:07 2038
 mktime 952044970 -> 100-2-3 0:56:10 wday 5 yday 62
-too small 6
+too small 0
 time 1, clock 1, difftime 6

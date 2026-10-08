@@ -1,5 +1,6 @@
 /* Spec: ISO C 7.23 - gmtime and mktime over the Gregorian calendar, strftime's conversions in the
-   "C" locale, asctime; time and clock answer something. Run against a host set to UTC. */
+   "C" locale, asctime, and strftime's 0 for a buffer no weekday name fits (7.23.3.5/3); time and
+   clock answer something. Run against a host set to UTC. */
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
@@ -16,7 +17,7 @@ int main(void)
 {
     static const long moments[] = { 0L, 68169600L, 951782400L, 1009843199L, 1700000000L, -86400L, 2147483647L };
     struct tm t;
-    char small[8];
+    char small[4];
     int i;
     time_t now;
     for (i = 0; i < (int)(sizeof moments / sizeof moments[0]); i++) {

@@ -57,11 +57,12 @@ time_t Calendar::compose(tm *fields)
     long year = 1900L + fields->tm_year + floorDiv(fields->tm_mon, 12);
     int month = (int)floorMod(fields->tm_mon, 12);
     long total = daysFromEpoch(year, month, 1) + days;
-    // 2^31 seconds is 24855 days: outside that a 32-bit time_t has no answer.
+    // 2^31 seconds is 24855 days and a part: the sum is formed in 64 bits and a 32-bit time_t must hold it.
     if (total < -24856 || total > 24855) return (time_t)-1;
-    long t = total * 86400 + hours * 3600 + minutes * 60 + seconds;
-    breakDown(t, fields);
-    return t;
+    long long t = (long long)total * 86400 + hours * 3600 + minutes * 60 + seconds;
+    if (t < -2147483647LL - 1 || t > 2147483647LL) return (time_t)-1;
+    breakDown((time_t)t, fields);
+    return (time_t)t;
 }
 
 }  // namespace rts6x
