@@ -1,6 +1,6 @@
 // Spec: ISO C 7.20.4 (atexit: at least 32 functions, called in reverse order of registration by
-// exit; abort calls none of them) and the Itanium C++ ABI 3.3.5 (__cxa_atexit: a destructor and
-// its object, in the same reverse order as atexit's). One class owns the list and the ending.
+// exit, then every open stream closed; abort raises SIGABRT and calls none of them) and the Itanium
+// C++ ABI 3.3.5 (__cxa_atexit: a destructor and its object, in atexit's order). One class owns the ending.
 #ifndef RTS6X_TERMINATION_H
 #define RTS6X_TERMINATION_H
 
@@ -14,9 +14,11 @@ public:
     static int add(void (*function)(void));
     // A destructor and its object, for exit to call in the same list (C++).
     static int add(void (*destructor)(void *), void *object);
-    // Calls the list, last first, then stops with status - which sim6747 reports.
+    // Calls the list, last first, then the stream closer, then stops with status - which sim6747 reports.
     static void exit(int status);
-    // Stops at once, the list not called: 134, as a host shell reports a program that aborted.
+    // What closes the open streams at exit (7.20.4.3/4); stdio names it when it first opens one.
+    static void closeStreamsWith(void (*closer)(void)) { streams_ = closer; }
+    // SIGABRT delivered once, then a stop, the list not called: 134, a host shell's status for an abort.
     static void abort();
 
 private:
@@ -28,6 +30,9 @@ private:
     };
     static Entry entries_[Capacity];
     static int count_;
+    static void (*streams_)(void);
+    // Set while SIGABRT is delivered, so an abort from its handler (SIG_DFL included) stops at once.
+    static bool aborting_;
 };
 
 }  // namespace rts6x

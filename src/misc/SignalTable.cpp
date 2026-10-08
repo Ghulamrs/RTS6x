@@ -1,6 +1,6 @@
 // Spec: ISO C 7.14.1.1 and 7.14.2.1 - a handler per signal; SIG_DFL ends the program as abort does
-// (status 134, as SIGABRT's default leaves it), SIG_IGN does nothing. A handler stays installed after
-// it runs (7.14.1.1/3 lets the implementation choose; the hosts' C libraries choose this).
+// (status 134, as SIGABRT's default leaves it; abort itself delivers SIGABRT here first), SIG_IGN does
+// nothing. A handler stays installed after it runs (7.14.1.1/3 lets the implementation choose; the hosts do).
 
 #include <signal.h>
 #include "SignalTable.h"

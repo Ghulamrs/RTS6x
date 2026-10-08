@@ -7,8 +7,20 @@
 #include "Stream.h"
 #include "../host/CioChannel.h"
 #include "../misc/ErrorNumber.h"
+#include "../exit/Termination.h"
 
 namespace rts6x {
+
+namespace {
+
+// Every stream still open when the program ends, closed (7.20.4.3/4): a tmpfile's is removed with it.
+void closeAll()
+{
+    for (int i = Stream::FirstFree; i < RTS6X_FTABLE_COUNT; i++)
+        if (_ftable[i].flags & Stream::Open) Stream(&_ftable[i]).close();
+}
+
+}  // namespace
 
 bool Stream::parseMode(const char *mode, unsigned &host, unsigned &own)
 {
@@ -53,6 +65,7 @@ FILE *Stream::open(const char *path, const char *mode, FILE *slot)
     slot->buf = slot->pos = slot->bufend = slot->buff_stop = 0;
     slot->flags = Open | own | (host & CioChannel::Binary ? Binary : 0);
     Stream(slot).forgetFill();
+    Termination::closeStreamsWith(closeAll);
     return slot;
 }
 
