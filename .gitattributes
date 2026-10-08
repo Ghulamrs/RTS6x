@@ -1,2 +1,4 @@
 # Expected output is compared byte for byte: never let a checkout turn its LF into CRLF.
 *.expected -text
+# Windows batch files carry CR LF wherever they are checked out; cmd.exe misreads a long LF line.
+*.cmd text eol=crlf
