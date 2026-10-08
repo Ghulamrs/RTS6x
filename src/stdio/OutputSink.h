@@ -12,7 +12,7 @@ class OutputSink {
 public:
     // Into memory at dst; capacity is how many bytes may be written, the NUL included.
     OutputSink(char *dst, size_t capacity);
-    // To the host file descriptor fd.
+    // To the host file descriptor fd; a negative one is a stream refusing to write, and finish() says -1.
     explicit OutputSink(int fd);
 
     // A byte goes where next_ points while there is room; past it, overflow() stages or counts it.
@@ -21,7 +21,7 @@ public:
     void repeat(char c, size_t n) { if (n != 0) repeatRun(c, n); }
     // A string up to its NUL.
     void put(const char *s);
-    // Staged bytes written or the NUL stored; the count, or -1 if the host refused a write.
+    // Staged bytes written or the NUL stored; the count, or -1 if a write was refused.
     int finish();
 
     size_t count() const { return (size_t)(next_ - start_) + passed_; }

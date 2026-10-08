@@ -1,0 +1,6 @@
+fprintf to stdin 1
+fputs 1, fputc 1, ferror 1
+cleared 0
+empty mode 1
+read b, bad seek -1, then c, ftell 3
+bad whence -1, then d

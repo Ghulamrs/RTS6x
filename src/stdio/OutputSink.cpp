@@ -18,7 +18,7 @@ OutputSink::OutputSink(char *dst, size_t capacity)
 
 OutputSink::OutputSink(int fd)
     : start_(staging_), next_(staging_), end_(staging_ + Staging), passed_(0), capacity_(0), fd_(fd),
-      failed_(false)
+      failed_(fd < 0)
 {
 }
 

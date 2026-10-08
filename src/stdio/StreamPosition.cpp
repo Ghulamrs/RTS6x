@@ -16,9 +16,10 @@ int Stream::seek(long offset, int whence)
         offset += here;
         whence = SEEK_SET;
     }
+    // The host first: a refused seek leaves the stream where it was, read-ahead and all.
+    if (CioChannel::seek(f_->fd, offset, (CioChannel::Origin)whence) < 0) return -1;
     f_->pos = f_->bufend = f_->buf;
     forgetFill();
-    if (CioChannel::seek(f_->fd, offset, (CioChannel::Origin)whence) < 0) return -1;
     f_->flags &= ~(unsigned)AtEnd;
     return 0;
 }

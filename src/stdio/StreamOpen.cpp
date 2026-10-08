@@ -13,6 +13,7 @@ namespace rts6x {
 bool Stream::parseMode(const char *mode, unsigned &host, unsigned &own)
 {
     bool update = false, binary = false;
+    if (!mode[0]) return false;
     for (const char *p = mode + 1; *p; p++) {
         if (*p == '+') update = true;
         else if (*p == 'b') binary = true;
