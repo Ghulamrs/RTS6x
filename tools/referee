@@ -8,7 +8,7 @@
 #   to Windows builds and runs them); FROM=dir tools/referee  ship and judge what PREPARE left there
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-CPP=$(cd "$ROOT/../C++Optimize" && pwd); C90=$(cd "$ROOT/../VM6747/Compiler-Ci" && pwd)
+CPP=$(cd "$ROOT/../C++Optimize" && pwd); C90=$(cd "$ROOT/../Compiler-Ci" && pwd)
 SIM6747=${SIM6747:-$ROOT/../SIM6747/sim6747.exe}
 WINDOWS=${CXX1_WINDOWS:-windows}; REMOTE='C:\cxx1\referee'
 WHICH=${1:-both}; T0=$(date +%s)
