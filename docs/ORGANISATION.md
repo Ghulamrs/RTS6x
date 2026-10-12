@@ -180,13 +180,13 @@ then `rts6x.lib`), so the switch is one line in each.
 
 | repository | change | milestone |
 | --- | --- | --- |
-| C++Optimize, VM6747/Compiler-Ci | `RTSLIB` in `tests/tms6747.sh`; later its default | M1, M5 |
+| C++Optimize, Compiler-Ci | `RTSLIB` in `tests/tms6747.sh`; later its default | M1, M5 |
 | C++Optimize | the `.ref .S1`/`.S2` fix (ANALYSIS 6.1) | any time |
 | RIDE-4.7 | link with `rts6x.lib` from the package instead of the CCS compiler directory; ship it | M7 |
 | RIDE-4.7 packaging | release scripts clone and build RTS6x; `washout.py`; MASTER.SEAL | M7 |
 | RIDE-4.7 | the configuration chooses `rts6x.lib` or `rts6xd.lib`, `shmrt-tms6747` or `shmrt-tms6747-debug`; the workspace, RIDE.sln and the installers carry both | M8 |
-| VM6747/Compiler-Si | the C6000 Shalimar runtime built twice, -O2 and -O0 with `SHM_DEBUG` | M8 |
+| Compiler-Si | the C6000 Shalimar runtime built twice, -O2 and -O0 with `SHM_DEBUG` | M8 |
 | RIDE-4.7, SIM6747 | the packed Shalimar runtime; the session through sim6747; a stdin read that answers what has arrived | M9 |
-| C++Optimize, VM6747/Compiler-Ci, RIDE-4.7 | debug information for x86_64-windows, or a debugger that reads theirs | M10 |
-| VM6747/Compiler-Si | the optimiser on arm64-darwin; -O2 | M11 |
+| C++Optimize, Compiler-Ci, RIDE-4.7 | debug information for x86_64-windows, or a debugger that reads theirs | M10 |
+| Compiler-Si | the optimiser on arm64-darwin; -O2 | M11 |
 | LNK6x | none expected (D7); a fix only if a test needs one | - |

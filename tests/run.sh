@@ -8,7 +8,7 @@ CPP11=$(find_tool "${CPP11:-}" ../C++Optimize/cpp11.exe "$(command -v cpp11 2>/d
 C90=$(find_tool "${C90:-}" ../Compiler-Ci/c90.exe "$(command -v c90 2>/dev/null)")
 ASM6X=$(find_tool "${ASM6X:-}" ../ASM6x/build/asm6x.exe "$(command -v asm6x 2>/dev/null)")
 LNK6X=$(find_tool "${LNK6X:-}" ../LNK6x/build/lnk6x.exe "$(command -v lnk6x 2>/dev/null)")
-VM=$(find_tool "${VM:-}" ../VM6747/Emulator/vm6747.exe "$(command -v vm6747 2>/dev/null)")
+VM=$(find_tool "${VM:-}" ../VM6747/vm6747.exe "$(command -v vm6747 2>/dev/null)")
 SIM6747=$(find_tool "${SIM6747:-}" ../SIM6747/sim6747.exe "$(command -v sim6747 2>/dev/null)")
 for need in "cpp11:$CPP11" "c90:$C90" "asm6x:$ASM6X" "lnk6x:$LNK6X" "vm6747:$VM" "sim6747:$SIM6747"; do
     [ -n "${need#*:}" ] || { echo "run.sh: no ${need%%:*} - build it or name it"; exit 2; }
