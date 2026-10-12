@@ -12,7 +12,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CPP=$(cd "$ROOT/../../Compilers/C++Optimize" && pwd)
 CPP11=${CPP11:-$CPP/cpp11.exe}; ASM6X=${ASM6X:-$ROOT/../ASM6x/build/asm6x.exe}
 LNK6X=${LNK6X:-$ROOT/../LNK6x/build/lnk6x.exe}; TILIB=${TILIB:-$HOME/c6747-lib}
-WINDOWS=${CXX1_WINDOWS:-windows}; REMOTE='C:\cxx1\referee'
+WINDOWS=${WINDOWS_BOX:-windows}; REMOTE='C:\Users\GRA\work\referee'
 WORK=$(mktemp -d); trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/ref"
 for f in runca.js par-one.cmd c6747ca-windows.ccxml; do cp "$CPP/tools/c6747/$f" "$WORK/ref/"; done
@@ -35,10 +35,10 @@ if [ -n "${FROM:-}" ]; then cp "$FROM"/ref/*.out "$WORK/ref/" && NAMES=$(cat "$F
 done
 if [ -n "${PREPARE:-}" ]; then mkdir -p "$PREPARE" && cp -R "$WORK/ref" "$PREPARE/" && echo "$NAMES" > "$PREPARE/names" && echo "speed: prepared in $PREPARE"; exit 0; fi
 COPYFILE_DISABLE=1 tar -C "$WORK" --no-xattrs -czf "$WORK/ref.tgz" ref || exit 1
-scp -q -o BatchMode=yes "$WORK/ref.tgz" "$WINDOWS:C:/cxx1/ref.tgz" || { echo "speed: cannot ship to $WINDOWS"; exit 1; }
-ssh -o BatchMode=yes "$WINDOWS" "rmdir /s /q $REMOTE 2>nul & mkdir $REMOTE && tar -C $REMOTE --strip-components=1 -xzf C:\\cxx1\\ref.tgz && del C:\\cxx1\\ref.tgz" >/dev/null 2>&1 || exit 1
+scp -q -o BatchMode=yes "$WORK/ref.tgz" "$WINDOWS:C:/Users/GRA/work/ref.tgz" || { echo "speed: cannot ship to $WINDOWS"; exit 1; }
+ssh -o BatchMode=yes "$WINDOWS" "rmdir /s /q $REMOTE 2>nul & mkdir $REMOTE && tar -C $REMOTE --strip-components=1 -xzf C:\\Users\\GRA\\work\\ref.tgz && del C:\\Users\\GRA\\work\\ref.tgz" >/dev/null 2>&1 || exit 1
 ssh -o BatchMode=yes "$WINDOWS" "$REMOTE\\referee.cmd" > "$WORK/windows.log" 2>&1
-mkdir -p "$WORK/back"; scp -q -o BatchMode=yes "$WINDOWS:C:/cxx1/referee/out/*" "$WORK/back/" 2>/dev/null
+mkdir -p "$WORK/back"; scp -q -o BatchMode=yes "$WINDOWS:C:/Users/GRA/work/referee/out/*" "$WORK/back/" 2>/dev/null
 field() { tr -d '\r' < "$1" 2>/dev/null | tr ' ' '\n' | sed -n "s/^$2=//p" | head -1; }
 printf '%-14s %14s %14s %7s  %s\n' benchmark rts6x TI ratio output
 for n in $NAMES; do

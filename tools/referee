@@ -10,7 +10,7 @@ set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CPP=$(cd "$ROOT/../../Compilers/C++Optimize" && pwd); C90=$(cd "$ROOT/../../Compilers/Compiler-Ci" && pwd)
 SIM6747=${SIM6747:-$ROOT/../SIM6747/sim6747.exe}
-WINDOWS=${CXX1_WINDOWS:-windows}; REMOTE='C:\cxx1\referee'
+WINDOWS=${WINDOWS_BOX:-windows}; REMOTE='C:\Users\GRA\work\referee'
 WHICH=${1:-both}; T0=$(date +%s)
 WORK=$(mktemp -d); trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/ref" "$WORK/vm"
@@ -42,11 +42,11 @@ N=$(ls "$WORK/ref"/*.out | wc -l | tr -d ' ')
 echo "referee: $N images, shipping to $WINDOWS for TI's C6747 simulator"
 
 COPYFILE_DISABLE=1 tar -C "$WORK" --no-xattrs -czf "$WORK/ref.tgz" ref || exit 1
-scp -q -o BatchMode=yes "$WORK/ref.tgz" "$WINDOWS:C:/cxx1/ref.tgz" || { echo "referee: cannot ship to $WINDOWS"; exit 1; }
-ssh -o BatchMode=yes "$WINDOWS" "rmdir /s /q $REMOTE 2>nul & mkdir $REMOTE && tar -C $REMOTE --strip-components=1 -xzf C:\\cxx1\\ref.tgz && del C:\\cxx1\\ref.tgz" >/dev/null 2>&1 || { echo "referee: cannot unpack on $WINDOWS"; exit 1; }
+scp -q -o BatchMode=yes "$WORK/ref.tgz" "$WINDOWS:C:/Users/GRA/work/ref.tgz" || { echo "referee: cannot ship to $WINDOWS"; exit 1; }
+ssh -o BatchMode=yes "$WINDOWS" "rmdir /s /q $REMOTE 2>nul & mkdir $REMOTE && tar -C $REMOTE --strip-components=1 -xzf C:\\Users\\GRA\\work\\ref.tgz && del C:\\Users\\GRA\\work\\ref.tgz" >/dev/null 2>&1 || { echo "referee: cannot unpack on $WINDOWS"; exit 1; }
 ssh -o BatchMode=yes "$WINDOWS" "$REMOTE\\referee.cmd" > "$WORK/windows.log" 2>&1
 mkdir -p "$WORK/back"
-scp -q -o BatchMode=yes "$WINDOWS:C:/cxx1/referee/out/*" "$WORK/back/" 2>/dev/null
+scp -q -o BatchMode=yes "$WINDOWS:C:/Users/GRA/work/referee/out/*" "$WORK/back/" 2>/dev/null
 [ -f "$WORK/back/referee.done" ] || { echo "referee: the Windows worker did not finish"; tr -d '\r' < "$WORK/windows.log" | tail -8; exit 1; }
 
 # The verdict: TI's output against sim6747's, and the status A4 holds at C$$EXIT against sim6747's.
