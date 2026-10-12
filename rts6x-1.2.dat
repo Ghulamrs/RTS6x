@@ -1,5 +1,5 @@
 ©2026 G. R. Akhtar - RTS6x 1.2, a TMS320C6747 run-time support library
-Release seal, version 1.2, sealed 08-10-2026
+Release seal, version 1.2, sealed 13-10-2026
 Written by tools/seal; check it with `tools/seal check`.
 CRC32  size  file - 378 files, seal 040CE785
 ------------------------------------------------------------------
@@ -382,4 +382,4 @@ E925D82B       191  src/time/difftime.cpp
 A6A1B70E       282  src/time/time.cpp
 B889F910     12000  tools/ar6x/ar6x.cpp
 ------------------------------------------------------------------
-Sealed on 08-10-2026
+Sealed on 13-10-2026
