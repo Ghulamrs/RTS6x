@@ -8,7 +8,7 @@ rem   build.cmd reference [check]   rts6xr.lib and printf6xr.lib: the D2 speed f
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 set "RIDEBIN=%ProgramFiles%\RIDE 5.0\bin"
-if "%CPP11%"=="" if exist "..\C++Optimize\cpp11.exe" set "CPP11=..\C++Optimize\cpp11.exe"
+if "%CPP11%"=="" if exist "..\..\Compilers\C++Optimize\cpp11.exe" set "CPP11=..\..\Compilers\C++Optimize\cpp11.exe"
 if "%CPP11%"=="" set "CPP11=%RIDEBIN%\cpp11.exe"
 if "%ASM6X%"=="" if exist "..\ASM6x\build\asm6x.exe" set "ASM6X=..\ASM6x\build\asm6x.exe"
 if "%ASM6X%"=="" set "ASM6X=%RIDEBIN%\asm6x.exe"

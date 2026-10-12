@@ -4,8 +4,8 @@
 # name them. Exit 1 if any test fails, each failure said.
 cd "$(dirname "$0")/.." || exit 2
 find_tool() { for t in "$@"; do [ -n "$t" ] && [ -x "$t" ] && { echo "$t"; return; }; done; }
-CPP11=$(find_tool "${CPP11:-}" ../C++Optimize/cpp11.exe "$(command -v cpp11 2>/dev/null)")
-C90=$(find_tool "${C90:-}" ../Compiler-Ci/c90.exe "$(command -v c90 2>/dev/null)")
+CPP11=$(find_tool "${CPP11:-}" ../../Compilers/C++Optimize/cpp11.exe "$(command -v cpp11 2>/dev/null)")
+C90=$(find_tool "${C90:-}" ../../Compilers/Compiler-Ci/c90.exe "$(command -v c90 2>/dev/null)")
 ASM6X=$(find_tool "${ASM6X:-}" ../ASM6x/build/asm6x.exe "$(command -v asm6x 2>/dev/null)")
 LNK6X=$(find_tool "${LNK6X:-}" ../LNK6x/build/lnk6x.exe "$(command -v lnk6x 2>/dev/null)")
 VM=$(find_tool "${VM:-}" ../VM6747/vm6747.exe "$(command -v vm6747 2>/dev/null)")

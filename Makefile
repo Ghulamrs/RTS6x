@@ -11,7 +11,7 @@ ifeq ($(origin CXX),default)
   endif
 endif
 HOSTFLAGS = -std=c++14 -O2 -g -Wall -Wextra -Werror -pedantic
-CPP11  ?= ../C++Optimize/cpp11.exe
+CPP11  ?= ../../Compilers/C++Optimize/cpp11.exe
 ASM6X  ?= ../ASM6x/build/asm6x.exe
 OBJDIR ?= ../build/RTS6x/obj
 DOBJDIR ?= $(OBJDIR)d

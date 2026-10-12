@@ -9,7 +9,7 @@
 #   FROM=dir tools/speed     ship and judge what PREPARE left there
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-CPP=$(cd "$ROOT/../C++Optimize" && pwd)
+CPP=$(cd "$ROOT/../../Compilers/C++Optimize" && pwd)
 CPP11=${CPP11:-$CPP/cpp11.exe}; ASM6X=${ASM6X:-$ROOT/../ASM6x/build/asm6x.exe}
 LNK6X=${LNK6X:-$ROOT/../LNK6x/build/lnk6x.exe}; TILIB=${TILIB:-$HOME/c6747-lib}
 WINDOWS=${CXX1_WINDOWS:-windows}; REMOTE='C:\cxx1\referee'

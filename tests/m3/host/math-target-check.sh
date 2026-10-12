@@ -5,7 +5,7 @@
 cd "$(dirname "$0")/../../.." || exit 2
 OUT=${OUT:-../build/RTS6x-math/host}
 mkdir -p "$OUT"
-CPP11=${CPP11:-../C++Optimize/cpp11.exe} ASM6X=${ASM6X:-../ASM6x/build/asm6x.exe}
+CPP11=${CPP11:-../../Compilers/C++Optimize/cpp11.exe} ASM6X=${ASM6X:-../ASM6x/build/asm6x.exe}
 LNK6X=${LNK6X:-../LNK6x/build/lnk6x.exe} SIM6747=${SIM6747:-../SIM6747/sim6747.exe}
 clang++ -DHOST -std=c++14 -O2 -ffp-contract=off -o "$OUT/values-host" tests/m3/host/math-values.cpp \
     $(ls src/math/*.cpp | grep '/[A-Z]') src/helpers/SoftFloat.cpp src/helpers/FloatRounding.cpp src/misc/ErrorNumber.cpp || exit 1
