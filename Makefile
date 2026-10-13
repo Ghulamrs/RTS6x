@@ -1,6 +1,6 @@
 # RTS6x: rts6x.lib built by our own tools only - cpp11 for C++, asm6x for assembly, ar6x to pack.
 # Two of each library: rts6x.lib and printf6x.lib at -O2 for a Release build, rts6xd.lib and
-# printf6xd.lib at -O0 with _DEBUG for a Debug one - the flags RIDE gives a program in each.
+# printf6xd.lib at -O0 -g with _DEBUG for a Debug one - the flags RIDE gives a program in each.
 # ar6x is built first with the host's compiler, like ASM6x and LNK6x. Objects live outside the
 # checkout, as the siblings keep theirs; CPP11=, ASM6X=, LNK6X=, SIM6747= name the tools.
 ifeq ($(origin CXX),default)
@@ -21,7 +21,7 @@ AR6X    = $(BINDIR)/ar6x.exe
 LIB     = $(BINDIR)/rts6x.lib
 LIBD    = $(BINDIR)/rts6xd.lib
 RFLAGS  = -O2 -DNDEBUG=1
-DFLAGS  = -O0 -D_DEBUG=1
+DFLAGS  = -O0 -g -D_DEBUG=1
 XFLAGS  = $(RFLAGS) -DRTS6X_REFERENCE=1
 # X-reference.cpp is the C++ of a speed file X.s (D2), empty unless RTS6X_REFERENCE is defined:
 # left out of the ordinary libraries, and in rts6xr.lib (make reference) it stands in for X.s.

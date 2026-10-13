@@ -1,7 +1,7 @@
 @echo off
 rem RTS6x on Windows: the Makefile's steps - ar6x built with cl, each folder's C++ sources through cpp11
 rem and its .s through asm6x, the provenance check, then ar6x packs build\rts6x.lib - twice: rts6x.lib and
-rem printf6x.lib at -O2 for a Release build, rts6xd.lib and printf6xd.lib at -O0 with _DEBUG for a Debug one.
+rem printf6x.lib at -O2 for a Release build, rts6xd.lib and printf6xd.lib at -O0 -g with _DEBUG for a Debug one.
 rem The tools: CPP11, ASM6X named, else beside this checkout, else an installed RIDE's bin.
 rem   build.cmd           the library        build.cmd check     the library, then tests\run.sh
 rem   build.cmd reference [check]   rts6xr.lib and printf6xr.lib: the D2 speed files' C++ in their place
@@ -48,7 +48,7 @@ if /i "%~1"=="reference" (
     goto :tests
 )
 call :variant "" "-O2 -DNDEBUG=1" "%OBJDIR%" || exit /b 1
-call :variant d "-O0 -D_DEBUG=1" "%OBJDIR%d" || exit /b 1
+call :variant d "-O0 -g -D_DEBUG=1" "%OBJDIR%d" || exit /b 1
 
 if /i not "%~1"=="check" exit /b 0
 :tests
