@@ -15,8 +15,11 @@ if "%REFSTART%"=="" set REFSTART=180
 cd /d "%W%"
 if exist out rmdir /s /q out
 mkdir out
-rem The host takes a path from the root, /tmp/x, as one under the program's own folder: tmp\x here.
+rem The host takes a path from the root as one under the program's own folder: /tmp/x is tmp\x here,
+rem and /dev/null is the file dev\null - a program that writes there needs the dev folder, or its
+rem fopen fails on this host and not on sim6747's (measured: c90's io_three_agree, 2026-10-13).
 mkdir tmp 2>nul
+mkdir dev 2>nul
 if exist ws rmdir /s /q ws 2>nul
 mkdir ws 2>nul
 del /q *.result *.stdout *.fin *.dead *.t0 *.ta *.tries 2>nul

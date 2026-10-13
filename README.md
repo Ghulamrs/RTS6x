@@ -15,4 +15,6 @@ conversion, on sim6747 and on TI's CCS 5.5 simulator. `make check` runs every te
 which runs every image both tms6747 suites link against `rts6x.lib` on CCS 5.5's cycle-accurate
 simulator on the Windows box; `tools/referee --record` writes the verdict into `docs/REFEREE-<date>.md`
 - the heads it was run at, the counts, one row per image - so a result is in the tree and not only
-in a log.
+in a log. CCS 5.5's Windows host takes a path from the root as one under the image's folder, so
+referee.cmd makes `tmp` and `dev` there for the programs that open `/tmp/...` and `/dev/null`;
+sim6747 on the Mac opens both as written, and without the folders the verdicts differ.
